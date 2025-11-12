@@ -1,0 +1,5 @@
+{
+  "name": "Gemini 聊天应用",
+  "description": "一个界面优美的聊天应用，可连接到自定义的与OpenAI兼容的Gemini API端点。支持文件上传和自定义API密钥。",
+  "requestFramePermissions": []
+}
