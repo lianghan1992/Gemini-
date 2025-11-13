@@ -15,3 +15,12 @@ export interface ChatMessage {
   content: string | MessageContentPart[];
   timestamp: number;
 }
+
+export interface Conversation {
+    id: string;
+    title: string;
+    messages: ChatMessage[];
+    createdAt: number;
+}
+
+export type Theme = 'light' | 'dark' | 'system';

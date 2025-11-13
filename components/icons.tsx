@@ -8,26 +8,26 @@ export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
 
 export const GeminiSparkIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-        <path d="M9 11.5C9 10.1193 10.1193 9 11.5 9C12.8807 9 14 10.1193 14 11.5C14 12.8807 12.8807 14 11.5 14C10.1193 14 9 12.8807 9 11.5Z" fill="url(#paint0_linear_1_2)"/>
-        <path d="M3.5 10C3.5 8.61929 4.61929 7.5 6 7.5C7.38071 7.5 8.5 8.61929 8.5 10C8.5 11.3807 7.38071 12.5 6 12.5C4.61929 12.5 3.5 11.3807 3.5 10Z" fill="url(#paint1_linear_1_2)"/>
-        <path d="M15.5 6C15.5 4.61929 16.6193 3.5 18 3.5C19.3807 3.5 20.5 4.61929 20.5 6C20.5 7.38071 19.3807 8.5 18 8.5C16.6193 8.5 15.5 7.38071 15.5 6Z" fill="url(#paint2_linear_1_2)"/>
-        <path d="M14 18C14 16.6193 15.1193 15.5 16.5 15.5C17.8807 15.5 19 16.6193 19 18C19 19.3807 17.8807 20.5 16.5 20.5C15.1193 20.5 14 19.3807 14 18Z" fill="url(#paint3_linear_1_2)"/>
+        <path d="M9 11.5C9 10.1193 10.1193 9 11.5 9C12.8807 9 14 10.1193 14 11.5C14 12.8807 12.8807 14 11.5 14C10.1193 14 9 12.8807 9 11.5Z" fill="url(#paint0_linear_1_2_gemini)"/>
+        <path d="M3.5 10C3.5 8.61929 4.61929 7.5 6 7.5C7.38071 7.5 8.5 8.61929 8.5 10C8.5 11.3807 7.38071 12.5 6 12.5C4.61929 12.5 3.5 11.3807 3.5 10Z" fill="url(#paint1_linear_1_2_gemini)"/>
+        <path d="M15.5 6C15.5 4.61929 16.6193 3.5 18 3.5C19.3807 3.5 20.5 4.61929 20.5 6C20.5 7.38071 19.3807 8.5 18 8.5C16.6193 8.5 15.5 7.38071 15.5 6Z" fill="url(#paint2_linear_1_2_gemini)"/>
+        <path d="M14 18C14 16.6193 15.1193 15.5 16.5 15.5C17.8807 15.5 19 16.6193 19 18C19 19.3807 17.8807 20.5 16.5 20.5C15.1193 20.5 14 19.3807 14 18Z" fill="url(#paint3_linear_1_2_gemini)"/>
         <defs>
-            <linearGradient id="paint0_linear_1_2" x1="11.5" y1="9" x2="11.5" y2="14" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#89B5F7"/>
-            <stop offset="1" stopColor="#C1A4FF"/>
+            <linearGradient id="paint0_linear_1_2_gemini" x1="11.5" y1="9" x2="11.5" y2="14" gradientUnits="userSpaceOnUse" className="text-accent-start dark:text-dark-accent-start">
+              <stop stopColor="currentColor" />
+              <stop offset="1" stopColor="currentColor" className="text-accent-end dark:text-dark-accent-end" />
             </linearGradient>
-            <linearGradient id="paint1_linear_1_2" x1="6" y1="7.5" x2="6" y2="12.5" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#89B5F7"/>
-            <stop offset="1" stopColor="#C1A4FF"/>
+            <linearGradient id="paint1_linear_1_2_gemini" x1="6" y1="7.5" x2="6" y2="12.5" gradientUnits="userSpaceOnUse" className="text-accent-start dark:text-dark-accent-start">
+              <stop stopColor="currentColor" />
+              <stop offset="1" stopColor="currentColor" className="text-accent-end dark:text-dark-accent-end" />
             </linearGradient>
-            <linearGradient id="paint2_linear_1_2" x1="18" y1="3.5" x2="18" y2="8.5" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#89B5F7"/>
-            <stop offset="1" stopColor="#C1A4FF"/>
+            <linearGradient id="paint2_linear_1_2_gemini" x1="18" y1="3.5" x2="18" y2="8.5" gradientUnits="userSpaceOnUse" className="text-accent-start dark:text-dark-accent-start">
+              <stop stopColor="currentColor" />
+              <stop offset="1" stopColor="currentColor" className="text-accent-end dark:text-dark-accent-end" />
             </linearGradient>
-            <linearGradient id="paint3_linear_1_2" x1="16.5" y1="15.5" x2="16.5" y2="20.5" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#89B5F7"/>
-            <stop offset="1" stopColor="#C1A4FF"/>
+            <linearGradient id="paint3_linear_1_2_gemini" x1="16.5" y1="15.5" x2="16.5" y2="20.5" gradientUnits="userSpaceOnUse" className="text-accent-start dark:text-dark-accent-start">
+              <stop stopColor="currentColor" />
+              <stop offset="1" stopColor="currentColor" className="text-accent-end dark:text-dark-accent-end" />
             </linearGradient>
         </defs>
     </svg>
@@ -41,7 +41,7 @@ export const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export const AttachmentIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+  <svg xmlns="http://www.w.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
     <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
   </svg>
 );
@@ -64,12 +64,6 @@ export const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-export const RefreshIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-    </svg>
-);
-
 export const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0">
     <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -79,5 +73,35 @@ export const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    </svg>
+);
+
+export const MenuIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+    </svg>
+);
+
+export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+    </svg>
+);
+
+export const SunIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41zm12.72 12.72c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0zm12.72-12.72c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0z"/>
+    </svg>
+);
+
+export const MoonIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.3 4.88c.16.02.32.05.48.07A8.995 8.995 0 0 1 22 14.15c0 4.38-3.2 8.01-7.33 8.78-.33.05-.66.07-1 .07-4.97 0-9-4.03-9-9 0-4.01 2.65-7.4 6.33-8.64.4-.13.82-.23 1.25-.32.02 0 .04 0 .05-.01z"/>
+    </svg>
+);
+
+export const DesktopIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"/>
     </svg>
 );

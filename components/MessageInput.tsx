@@ -15,7 +15,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${scrollHeight}px`;
     }
   }, [text]);
 
@@ -48,11 +49,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
 
 
   return (
-    <div className="px-4 pb-4 pt-2">
+    <div className="px-4 pb-4 pt-2 shrink-0">
       <div className="w-full max-w-4xl mx-auto">
         {file && (
-            <div className="mb-2 p-2 bg-gemini-user-bg rounded-md">
-                <div className="flex items-center justify-between text-sm text-gemini-text-secondary">
+            <div className="mb-2 p-2 bg-user-bg dark:bg-dark-user-bg rounded-md">
+                <div className="flex items-center justify-between text-sm text-text-secondary dark:text-dark-text-secondary">
                     <span className="truncate">已选择文件: {file.name}</span>
                     <button onClick={removeFile} className="text-red-500 hover:text-red-700 ml-2 flex-shrink-0">
                         <TrashIcon className="w-4 h-4"/>
@@ -60,7 +61,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
                 </div>
             </div>
         )}
-        <div className="flex items-end bg-gemini-input-bg rounded-2xl p-2 border border-gemini-border focus-within:border-gemini-accent-start transition-colors">
+        <div className="flex items-end bg-input-bg dark:bg-dark-input-bg rounded-2xl p-2.5 border border-border dark:border-dark-border focus-within:border-accent-start dark:focus-within:border-dark-accent-start transition-colors shadow-input dark:shadow-input-dark">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -70,7 +71,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
             />
             <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-gemini-text-secondary hover:text-gemini-text"
+                className="p-2 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary transition-colors"
             >
                 <AttachmentIcon className="w-6 h-6" />
             </button>
@@ -86,12 +87,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
                 }}
                 placeholder="输入消息..."
                 rows={1}
-                className="flex-1 bg-transparent border-none focus:ring-0 resize-none text-gemini-text placeholder-gemini-text-secondary max-h-48 overflow-y-auto"
+                className="flex-1 bg-transparent border-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-48 overflow-y-auto"
             />
             <button
                 onClick={handleSend}
                 disabled={isLoading || (!text.trim() && !file)}
-                className="p-2 rounded-full bg-gemini-user-bg text-gemini-text disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-gemini-border transition-colors"
+                className="p-2 rounded-full bg-user-bg dark:bg-dark-user-bg text-text-primary dark:text-dark-text-primary disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-border dark:hover:bg-dark-border transition-colors"
             >
                 <SendIcon className="w-5 h-5" />
             </button>

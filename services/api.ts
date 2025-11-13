@@ -50,6 +50,49 @@ export const fetchModels = async (apiKey: string, baseUrl: string): Promise<stri
     }
 }
 
+export const generateTitle = async (
+  userMessage: ChatMessage['content'],
+  apiKey: string,
+  baseUrl: string,
+  model: string
+): Promise<string> => {
+    const url = `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
+    const userContent = typeof userMessage === 'string' ? userMessage : (
+        Array.isArray(userMessage) 
+        ? userMessage.find(p => p.type === 'text')?.text || 'Image Conversation'
+        : 'New Conversation'
+    );
+
+    const prompt = `为以下对话生成一个简短、简洁的标题（不超过5个词）:\n\n用户: "${userContent.substring(0, 100)}..."\n\n标题:`;
+
+    const payload = {
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        stream: false,
+        max_tokens: 20,
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            return "新对话";
+        }
+        const data = await response.json();
+        let title = data.choices?.[0]?.message?.content?.trim().replace(/["']/g, "") || "新对话";
+        return title;
+    } catch (error) {
+        console.error("生成标题失败:", error);
+        return "新对话";
+    }
+};
+
 
 export const fetchChatCompletionStream = async (
   messages: ChatMessage[],

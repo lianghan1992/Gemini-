@@ -1,32 +1,31 @@
 import React, { useEffect, useRef } from 'react';
-import { ChatMessage } from '../types';
+import { Conversation } from '../types';
 import Message from './Message';
-import { GeminiSparkIcon } from './icons';
 import SuggestionCard from './SuggestionCard';
 
 interface ChatWindowProps {
-  messages: ChatMessage[];
+  conversation: Conversation | null;
   isLoading: boolean;
   onSuggestionClick: (suggestion: string) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, onSuggestionClick }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, isLoading, onSuggestionClick }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading]);
+  }, [conversation?.messages, isLoading]);
   
   const InitialScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full text-gemini-text">
-        <h1 className="text-5xl font-bold mb-8 bg-gemini-gradient bg-clip-text text-transparent">
+    <div className="flex flex-col items-center justify-center h-full text-text-primary dark:text-dark-text-primary p-4">
+        <h1 className="text-5xl font-bold mb-8 bg-gemini-gradient dark:bg-dark-gemini-gradient bg-clip-text text-transparent text-center">
             你好，我是 Gemini
         </h1>
-        <h2 className="text-2xl text-gemini-text-secondary mb-12">我能为您做些什么？</h2>
+        <h2 className="text-2xl text-text-secondary dark:text-dark-text-secondary mb-12 text-center">我能为您做些什么？</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
             <SuggestionCard 
                 title="写一首诗"
                 description="关于星空和梦想"
@@ -50,6 +49,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, onSuggesti
         </div>
     </div>
   );
+
+  const messages = conversation?.messages || [];
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">

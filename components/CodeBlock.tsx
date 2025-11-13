@@ -19,12 +19,12 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
   };
 
   return (
-    <div className="relative text-sm bg-gemini-bg rounded-lg my-4 border border-gemini-border">
-      <div className="flex items-center justify-between px-4 py-2 bg-gemini-input-bg rounded-t-lg">
-        <span className="text-gemini-text-secondary">{language}</span>
+    <div className="relative text-sm bg-sidebar dark:bg-dark-background rounded-lg my-4 border border-border dark:border-dark-border">
+      <div className="flex items-center justify-between px-4 py-2 bg-user-bg dark:bg-dark-input-bg rounded-t-lg">
+        <span className="text-text-secondary dark:text-dark-text-secondary">{language}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-gemini-text-secondary hover:text-gemini-text transition-colors"
+          className="flex items-center gap-1.5 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary transition-colors"
         >
           {isCopied ? (
             <>

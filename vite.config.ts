@@ -1,23 +1,18 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
-      },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
-});
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    rollupOptions: {
+      // 使用正则表达式将 'react-syntax-highlighter' 及其所有子路径
+      // (例如 '.../dist/esm/styles/prism') 声明为外部依赖。
+      // 这是一个更可靠的方法，可以确保构建工具不会尝试打包这些模块。
+      // 浏览器将使用 index.html 中的 importmap 从 CDN 加载它们。
+      external: [
+        /^react-syntax-highlighter(\/.*)?/,
+      ]
+    }
+  }
+})

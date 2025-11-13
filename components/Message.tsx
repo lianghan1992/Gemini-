@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import CodeBlock from './CodeBlock';
 
 const BlinkingCursor: React.FC = () => (
-    <span className="inline-block w-2 h-5 bg-gemini-text-secondary animate-pulse ml-1 rounded-sm" />
+    <span className="inline-block w-2 h-5 bg-text-secondary dark:bg-dark-text-secondary animate-pulse ml-1 rounded-sm" />
 );
 
 const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ message, isStreaming }) => {
@@ -28,7 +28,7 @@ const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ me
                             return match ? (
                                 <CodeBlock language={match[1]} value={String(children).replace(/\n$/, '')} />
                             ) : (
-                                <code {...rest} className={className}>
+                                <code {...rest} className={className + " bg-user-bg dark:bg-dark-user-bg p-1 rounded-md"}>
                                     {children}
                                 </code>
                             )
@@ -57,13 +57,13 @@ const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ me
   };
 
   return (
-    <div className={`flex items-start gap-4 p-4 `}>
-      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gemini-user-bg`}>
-        {isUser ? <UserIcon className="w-5 h-5 text-gemini-text" /> : <GeminiSparkIcon className="w-6 h-6" />}
+    <div className={`flex items-start gap-4 p-4 md:p-6`}>
+      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-user-bg dark:bg-dark-user-bg`}>
+        {isUser ? <UserIcon className="w-5 h-5 text-text-primary dark:text-dark-text-primary" /> : <GeminiSparkIcon className="w-6 h-6" />}
       </div>
       <div className={`max-w-full md:max-w-3xl flex-1`}>
-        <p className="font-semibold text-gemini-text mb-2">{isUser ? 'You' : 'Gemini'}</p>
-        <div className="text-gemini-text">
+        <p className="font-semibold text-text-primary dark:text-dark-text-primary mb-2">{isUser ? 'You' : 'Gemini'}</p>
+        <div className="text-text-primary dark:text-dark-text-primary">
             {renderContent(message.content)}
         </div>
       </div>

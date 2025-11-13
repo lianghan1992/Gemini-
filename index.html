@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L8.35 12 5.21 7.21C5.08 6.79 5 6.38 5 6c0-3.9 2.93-7.13 6.74-7.85.17.02.34.05.51.05 4.41 0 8 3.59 8 8s-3.59 8-8 8c-.17 0-.34-.03-.51-.05z'/%3E%3C/svg%3E" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9 11.5C9 10.1193 10.1193 9 11.5 9C12.8807 9 14 10.1193 14 11.5C14 12.8807 12.8807 14 11.5 14C10.1193 14 9 12.8807 9 11.5Z' fill='%2389B5F7'/%3E%3Cpath d='M3.5 10C3.5 8.61929 4.61929 7.5 6 7.5C7.38071 7.5 8.5 8.61929 8.5 10C8.5 11.3807 7.38071 12.5 6 12.5C4.61929 12.5 3.5 11.3807 3.5 10Z' fill='%2389B5F7'/%3E%3Cpath d='M15.5 6C15.5 4.61929 16.6193 3.5 18 3.5C19.3807 3.5 20.5 4.61929 20.5 6C20.5 7.38071 19.3807 8.5 18 8.5C16.6193 8.5 15.5 7.38071 15.5 6Z' fill='%2389B5F7'/%3E%3Cpath d='M14 18C14 16.6193 15.1193 15.5 16.5 15.5C17.8807 15.5 19 16.6193 19 18C19 19.3807 17.8807 20.5 16.5 20.5C15.1193 20.5 14 19.3807 14 18Z' fill='%2389B5F7'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- PWA / iOS Native App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M9 11.5C9 10.1193 10.1193 9 11.5 9C12.8807 9 14 10.1193 14 11.5C14 12.8807 12.8807 14 11.5 14C10.1193 14 9 12.8807 9 11.5Z' fill='%2389B5F7'/%3E%3Cpath d='M3.5 10C3.5 8.61929 4.61929 7.5 6 7.5C7.38071 7.5 8.5 8.61929 8.5 10C8.5 11.3807 7.38071 12.5 6 12.5C4.61929 12.5 3.5 11.3807 3.5 10Z' fill='%2389B5F7'/%3E%3Cpath d='M15.5 6C15.5 4.61929 16.6193 3.5 18 3.5C19.3807 3.5 20.5 4.61929 20.5 6C20.5 7.38071 19.3807 8.5 18 8.5C16.6193 8.5 15.5 7.38071 15.5 6Z' fill='%2389B5F7'/%3E%3Cpath d='M14 18C14 16.6193 15.1193 15.5 16.5 15.5C17.8807 15.5 19 16.6193 19 18C19 19.3807 17.8807 20.5 16.5 20.5C15.1193 20.5 14 19.3807 14 18Z' fill='%2389B5F7'/%3E%3C/svg%3E">
+
     <title>Gemini 高级聊天</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,19 +25,39 @@
               sans: ['Inter', 'sans-serif'],
             },
             colors: {
-              'gemini-bg': '#131314',
-              'gemini-chat-bg': '#1E1F20',
-              'gemini-user-bg': '#333740',
-              'gemini-bot-bg': '#252830',
-              'gemini-input-bg': '#1E1F20',
-              'gemini-border': '#333740',
-              'gemini-text': '#E3E3E3',
-              'gemini-text-secondary': '#9B9B9B',
-              'gemini-accent-start': '#89B5F7',
-              'gemini-accent-end': '#C1A4FF',
+              // Light Mode Colors
+              'background': '#FFFFFF',
+              'sidebar': '#F0F4F9',
+              'chat-bg': '#FFFFFF',
+              'input-bg': '#FFFFFF',
+              'user-bg': '#F0F4F9',
+              'bot-bg': '#FFFFFF',
+              'border': '#E0E0E0',
+              'text-primary': '#1F2328',
+              'text-secondary': '#656D76',
+              'accent-start': '#4285F4',
+              'accent-end': '#726DE8',
+              
+              // Dark Mode Colors
+              'dark-background': '#131314',
+              'dark-sidebar': '#1E1F20',
+              'dark-chat-bg': '#1E1F20',
+              'dark-input-bg': '#1E1F20',
+              'dark-user-bg': '#333740',
+              'dark-bot-bg': '#252830',
+              'dark-border': '#333740',
+              'dark-text-primary': '#E3E3E3',
+              'dark-text-secondary': '#9B9B9B',
+              'dark-accent-start': '#89B5F7',
+              'dark-accent-end': '#C1A4FF',
             },
             backgroundImage: {
-              'gemini-gradient': 'linear-gradient(to right, #89B5F7, #C1A4FF)',
+              'gemini-gradient': 'linear-gradient(to right, #4285F4, #726DE8)',
+              'dark-gemini-gradient': 'linear-gradient(to right, #89B5F7, #C1A4FF)',
+            },
+            boxShadow: {
+              'input': '0 10px 15px -3px rgb(0 0 0 / 0.03), 0 4px 6px -4px rgb(0 0 0 / 0.03)',
+              'input-dark': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
             },
             keyframes: {
                 pulse: {
@@ -47,23 +73,66 @@
       }
     </script>
     <style type="text/tailwindcss">
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background-color: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background-color: #E0E0E0;
+          border-radius: 10px;
+          border: 2px solid #FFFFFF;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #C0C0C0;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+          background-color: #333740;
+          border: 2px solid #1E1F20;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+          background-color: #4A4E58;
+        }
+
+        /* Prose styling for Markdown */
         .prose {
-            --tw-prose-body: theme('colors.gemini-text');
-            --tw-prose-headings: theme('colors.gemini-text');
-            --tw-prose-lead: theme('colors.gemini-text-secondary');
-            --tw-prose-links: theme('colors.gemini-accent-start');
-            --tw-prose-bold: theme('colors.gemini-text');
-            --tw-prose-counters: theme('colors.gemini-text-secondary');
-            --tw-prose-bullets: theme('colors.gemini-border');
-            --tw-prose-hr: theme('colors.gemini-border');
-            --tw-prose-quotes: theme('colors.gemini-text');
-            --tw-prose-quote-borders: theme('colors.gemini-border');
-            --tw-prose-captions: theme('colors.gemini-text-secondary');
-            --tw-prose-code: theme('colors.gemini-text');
-            --tw-prose-pre-code: theme('colors.gemini-text');
-            --tw-prose-pre-bg: theme('colors.gemini-bg');
-            --tw-prose-th-borders: theme('colors.gemini-border');
-            --tw-prose-td-borders: theme('colors.gemini-border');
+            --tw-prose-body: theme('colors.text-primary');
+            --tw-prose-headings: theme('colors.text-primary');
+            --tw-prose-lead: theme('colors.text-secondary');
+            --tw-prose-links: theme('colors.accent-start');
+            --tw-prose-bold: theme('colors.text-primary');
+            --tw-prose-counters: theme('colors.text-secondary');
+            --tw-prose-bullets: theme('colors.border');
+            --tw-prose-hr: theme('colors.border');
+            --tw-prose-quotes: theme('colors.text-primary');
+            --tw-prose-quote-borders: theme('colors.border');
+            --tw-prose-captions: theme('colors.text-secondary');
+            --tw-prose-code: theme('colors.text-primary');
+            --tw-prose-pre-code: theme('colors.text-primary');
+            --tw-prose-pre-bg: theme('colors.sidebar');
+            --tw-prose-th-borders: theme('colors.border');
+            --tw-prose-td-borders: theme('colors.border');
+        }
+        .dark .prose {
+            --tw-prose-body: theme('colors.dark-text-primary');
+            --tw-prose-headings: theme('colors.dark-text-primary');
+            --tw-prose-lead: theme('colors.dark-text-secondary');
+            --tw-prose-links: theme('colors.dark-accent-start');
+            --tw-prose-bold: theme('colors.dark-text-primary');
+            --tw-prose-counters: theme('colors.dark-text-secondary');
+            --tw-prose-bullets: theme('colors.dark-border');
+            --tw-prose-hr: theme('colors.dark-border');
+            --tw-prose-quotes: theme('colors.dark-text-primary');
+            --tw-prose-quote-borders: theme('colors.dark-border');
+            --tw-prose-captions: theme('colors.dark-text-secondary');
+            --tw-prose-code: theme('colors.dark-text-primary');
+            --tw-prose-pre-code: theme('colors.dark-text-primary');
+            --tw-prose-pre-bg: theme('colors.dark-background');
+            --tw-prose-th-borders: theme('colors.dark-border');
+            --tw-prose-td-borders: theme('colors.dark-border');
         }
     </style>
 <script type="importmap">
@@ -79,13 +148,15 @@
     "katex/": "https://aistudiocdn.com/katex@^0.16.25/",
     "react-syntax-highlighter": "https://aistudiocdn.com/react-syntax-highlighter@^15.5.0",
     "react-syntax-highlighter/dist/esm/styles/prism": "https://aistudiocdn.com/react-syntax-highlighter@^15.5.0/dist/esm/styles/prism",
-    "react-syntax-highlighter/": "https://aistudiocdn.com/react-syntax-highlighter@^16.1.0/"
+    "react-syntax-highlighter/": "https://aistudiocdn.com/react-syntax-highlighter@^16.1.0/",
+    "vite": "https://aistudiocdn.com/vite@^7.2.2",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
 <link rel="stylesheet" href="https://aistudiocdn.com/katex@^0.16.25/dist/katex.min.css" />
 </head>
-  <body class="bg-gemini-bg font-sans text-gemini-text">
+  <body class="bg-background dark:bg-dark-background font-sans text-text-primary dark:text-dark-text-primary transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
