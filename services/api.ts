@@ -1,4 +1,3 @@
-
 import { ChatMessage } from '../types';
 
 interface ApiPayload {
@@ -32,12 +31,14 @@ export const fileToBase64 = (file: File): Promise<string> => {
 export const fetchChatCompletion = async (
   messages: ChatMessage[],
   apiKey: string,
-  baseUrl: string
+  baseUrl: string,
+  model: string
 ): Promise<string> => {
-  const url = `${baseUrl}v1/chat/completions`;
+  // Make URL construction more robust
+  const url = `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
 
   const payload: ApiPayload = {
-    model: 'gemini-2.5-flash',
+    model: model,
     messages: messages.map(({ role, content }) => ({ role, content })).filter(m => m.role !== 'system') as ApiPayload['messages'],
     stream: false,
   };
@@ -67,6 +68,9 @@ export const fetchChatCompletion = async (
     throw new Error('API 响应中没有找到有效的回答');
   } catch (error) {
     console.error('调用 API 时出错:', error);
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      return `网络请求失败。请检查您的网络连接，并确保 API Base URL 正确且服务器允许跨域请求 (CORS)。`;
+    }
     if (error instanceof Error) {
         return `发生错误: ${error.message}`;
     }

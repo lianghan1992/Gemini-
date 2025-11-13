@@ -1,28 +1,30 @@
-
 import React, { useState, useEffect } from 'react';
 import { CloseIcon } from './icons';
 
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (apiKey: string, baseUrl: string) => void;
+  onSave: (apiKey: string, baseUrl: string, model: string) => void;
   initialApiKey: string;
   initialBaseUrl: string;
+  initialModel: string;
 }
 
-const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApiKey, initialBaseUrl }) => {
+const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApiKey, initialBaseUrl, initialModel }) => {
   const [apiKey, setApiKey] = useState(initialApiKey);
   const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
+  const [model, setModel] = useState(initialModel);
 
   useEffect(() => {
     setApiKey(initialApiKey);
     setBaseUrl(initialBaseUrl);
-  }, [initialApiKey, initialBaseUrl, isOpen]);
+    setModel(initialModel);
+  }, [initialApiKey, initialBaseUrl, initialModel, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(apiKey, baseUrl);
+    onSave(apiKey, baseUrl, model);
     onClose();
   };
 
@@ -47,6 +49,20 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApi
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-gray-100"
             />
           </div>
+           <div>
+            <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              模型
+            </label>
+            <select
+              id="model"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100"
+            >
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+            </select>
+          </div>
           <div>
             <label htmlFor="baseUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               API Base URL
@@ -56,7 +72,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApi
               id="baseUrl"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="例如: http://localhost:8080/"
+              placeholder="例如: http://localhost:8080"
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-gray-100"
             />
           </div>

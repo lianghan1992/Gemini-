@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChatMessage, MessageContentPart } from './types';
 import ChatWindow from './components/ChatWindow';
@@ -7,9 +6,12 @@ import Settings from './components/Settings';
 import { SettingsIcon } from './components/icons';
 import { fetchChatCompletion, fileToBase64 } from './services/api';
 
+const availableModels = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+
 const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
-  const [baseUrl, setBaseUrl] = useState<string>('http://trojan.lianghan.site:60126/');
+  const [baseUrl, setBaseUrl] = useState<string>('http://trojan.lianghan.site:60126');
+  const [model, setModel] = useState<string>(availableModels[0]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -17,6 +19,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const storedApiKey = localStorage.getItem('gemini_api_key');
     const storedBaseUrl = localStorage.getItem('gemini_base_url');
+    let storedModel = localStorage.getItem('gemini_model');
+
     if (storedApiKey) {
       setApiKey(storedApiKey);
     } else {
@@ -25,13 +29,21 @@ const App: React.FC = () => {
     if (storedBaseUrl) {
       setBaseUrl(storedBaseUrl);
     }
+    
+    if (!storedModel || !availableModels.includes(storedModel)) {
+      storedModel = availableModels[0];
+      localStorage.setItem('gemini_model', storedModel);
+    }
+    setModel(storedModel);
   }, []);
 
-  const handleSaveSettings = (newApiKey: string, newBaseUrl: string) => {
+  const handleSaveSettings = (newApiKey: string, newBaseUrl: string, newModel: string) => {
     setApiKey(newApiKey);
     setBaseUrl(newBaseUrl);
+    setModel(newModel);
     localStorage.setItem('gemini_api_key', newApiKey);
     localStorage.setItem('gemini_base_url', newBaseUrl);
+    localStorage.setItem('gemini_model', newModel);
   };
 
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
@@ -84,7 +96,7 @@ const App: React.FC = () => {
     setMessages(newMessages);
 
     try {
-      const assistantResponse = await fetchChatCompletion(newMessages, apiKey, baseUrl);
+      const assistantResponse = await fetchChatCompletion(newMessages, apiKey, baseUrl, model);
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -104,7 +116,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [apiKey, baseUrl, messages]);
+  }, [apiKey, baseUrl, messages, model]);
 
   return (
     <div className="h-screen w-screen flex flex-col font-sans text-base text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-900">
@@ -130,6 +142,7 @@ const App: React.FC = () => {
         onSave={handleSaveSettings}
         initialApiKey={apiKey}
         initialBaseUrl={baseUrl}
+        initialModel={model}
       />
     </div>
   );
