@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -7,15 +6,37 @@ export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const BotIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M19.92,12.08A1,1,0,0,0,19,11H17.5a.5.5,0,0,1,0-1H19a1,1,0,0,0,0-2H17.5a.5.5,0,0,1,0-1H19a1,1,0,0,0,0-2h-2.12a1,1,0,0,0-.92.62L15,7H9L8.04,5.62A1,1,0,0,0,7.12,5H5A1,1,0,0,0,5,7h1.5a.5.5,0,0,1,0,1H5a1,1,0,0,0,0,2h1.5a.5.5,0,0,1,0,1H5a1,1,0,0,0,0,2h2.12a1,1,0,0,0,.92-.62L9,15h6l.96,1.38a1,1,0,0,0,.92.62H19a1,1,0,0,0,0-2H17.5a.5.5,0,0,1,0-1H19A1,1,0,0,0,19.92,12.08ZM12,13a1,1,0,1,1,1-1A1,1,0,0,1,12,13ZM10,10a1,1,0,1,1,1-1A1,1,0,0,1,10,10ZM14,10a1,1,0,1,1,1-1A1,1,0,0,1,14,10Z" />
-  </svg>
+export const GeminiSparkIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+        <path d="M9 11.5C9 10.1193 10.1193 9 11.5 9C12.8807 9 14 10.1193 14 11.5C14 12.8807 12.8807 14 11.5 14C10.1193 14 9 12.8807 9 11.5Z" fill="url(#paint0_linear_1_2)"/>
+        <path d="M3.5 10C3.5 8.61929 4.61929 7.5 6 7.5C7.38071 7.5 8.5 8.61929 8.5 10C8.5 11.3807 7.38071 12.5 6 12.5C4.61929 12.5 3.5 11.3807 3.5 10Z" fill="url(#paint1_linear_1_2)"/>
+        <path d="M15.5 6C15.5 4.61929 16.6193 3.5 18 3.5C19.3807 3.5 20.5 4.61929 20.5 6C20.5 7.38071 19.3807 8.5 18 8.5C16.6193 8.5 15.5 7.38071 15.5 6Z" fill="url(#paint2_linear_1_2)"/>
+        <path d="M14 18C14 16.6193 15.1193 15.5 16.5 15.5C17.8807 15.5 19 16.6193 19 18C19 19.3807 17.8807 20.5 16.5 20.5C15.1193 20.5 14 19.3807 14 18Z" fill="url(#paint3_linear_1_2)"/>
+        <defs>
+            <linearGradient id="paint0_linear_1_2" x1="11.5" y1="9" x2="11.5" y2="14" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#89B5F7"/>
+            <stop offset="1" stopColor="#C1A4FF"/>
+            </linearGradient>
+            <linearGradient id="paint1_linear_1_2" x1="6" y1="7.5" x2="6" y2="12.5" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#89B5F7"/>
+            <stop offset="1" stopColor="#C1A4FF"/>
+            </linearGradient>
+            <linearGradient id="paint2_linear_1_2" x1="18" y1="3.5" x2="18" y2="8.5" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#89B5F7"/>
+            <stop offset="1" stopColor="#C1A4FF"/>
+            </linearGradient>
+            <linearGradient id="paint3_linear_1_2" x1="16.5" y1="15.5" x2="16.5" y2="20.5" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#89B5F7"/>
+            <stop offset="1" stopColor="#C1A4FF"/>
+            </linearGradient>
+        </defs>
+    </svg>
 );
+
 
 export const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+    <path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87.99l.01 4.61c0 .71.73 1.2 1.39.91z" />
   </svg>
 );
 
@@ -40,5 +61,23 @@ export const CloseIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor" >
         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+    </svg>
+);
+
+export const RefreshIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+    </svg>
+);
+
+export const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0">
+    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+  </svg>
+);
+
+export const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
     </svg>
 );

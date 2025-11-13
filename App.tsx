@@ -3,22 +3,20 @@ import { ChatMessage, MessageContentPart } from './types';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import Settings from './components/Settings';
-import { SettingsIcon } from './components/icons';
+import { SettingsIcon, RefreshIcon } from './components/icons';
 import { fetchChatCompletionStream, fileToBase64, fetchModels } from './services/api';
 
 const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [model, setModel] = useState<string>('gemini-2.5-flash');
-  const [availableModels, setAvailableModels] = useState<string[]>(['gemini-2.5-flash', 'gemini-2.5-pro']);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   
-  // 使用相对路径，请求将发送到同一域名下的 /api 路径，由 Apache 反向代理处理
   const baseUrl = '/api';
 
   const updateModels = useCallback(async (key: string) => {
-    // API 请求现在会变成 /api/v1/models
     const models = await fetchModels(key, baseUrl);
     if (models.length > 0) {
       setAvailableModels(models);
@@ -29,6 +27,15 @@ const App: React.FC = () => {
         setModel(models[0]);
         localStorage.setItem('gemini_model', models[0]);
       }
+    } else {
+       setAvailableModels([]);
+       const errorMsg: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: '无法获取模型列表。请检查您的API密钥是否正确或网络连接是否正常。',
+            timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, errorMsg]);
     }
   }, []);
 
@@ -38,7 +45,9 @@ const App: React.FC = () => {
 
     if (storedApiKey) {
       setApiKey(storedApiKey);
-      updateModels(storedApiKey);
+      if (availableModels.length === 0) {
+          updateModels(storedApiKey);
+      }
     } else {
       setIsSettingsOpen(true);
     }
@@ -46,7 +55,7 @@ const App: React.FC = () => {
     if (storedModel) {
         setModel(storedModel)
     }
-  }, [updateModels]);
+  }, [updateModels, availableModels.length]);
 
   const handleSaveSettings = (newApiKey: string, newModel: string) => {
     setApiKey(newApiKey);
@@ -68,6 +77,18 @@ const App: React.FC = () => {
         setMessages(prev => [...prev, errorMsg]);
         return;
     }
+    
+    if (availableModels.length === 0 && !model) {
+        const errorMsg: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: '没有可用的模型。请检查您的API密钥或刷新页面重试。',
+            timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        return;
+    }
+
 
     let content: string | MessageContentPart[] = text;
     if (file) {
@@ -120,8 +141,7 @@ const App: React.FC = () => {
       (chunk) => {
         setMessages(prev => prev.map(msg => 
             msg.id === assistantId 
-                ? { ...msg, content: msg.content + chunk }
-                // @ts-ignore
+                ? { ...msg, content: (msg.content as string) + chunk }
                 : msg
         ));
       },
@@ -132,30 +152,41 @@ const App: React.FC = () => {
         setMessages(prev => prev.map(msg => 
             msg.id === assistantId 
                 ? { ...msg, content: `出现错误: ${error.message}` }
-                // @ts-ignore
                 : msg
         ));
         setIsLoading(false);
       }
     );
 
-  }, [apiKey, messages, model]);
+  }, [apiKey, messages, model, availableModels]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+  };
 
   return (
-    <div className="h-screen w-screen flex flex-col font-sans text-base text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-900">
-        <header className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-            <h1 className="text-xl font-semibold">Gemini 聊天</h1>
+    <div className="h-screen w-screen flex flex-col bg-gemini-bg">
+      <div className="flex-1 flex flex-col overflow-hidden w-full max-w-4xl mx-auto">
+        <header className="flex items-center justify-between p-4 text-gemini-text">
+            <button onClick={clearChat} className="flex items-center gap-2 p-2 rounded-full hover:bg-gemini-input-bg transition-colors" aria-label="新聊天">
+                <RefreshIcon className="w-5 h-5"/>
+                <span className="text-sm">新聊天</span>
+            </button>
+            <h1 className="text-xl font-semibold bg-gemini-gradient bg-clip-text text-transparent">Gemini</h1>
             <button 
                 onClick={() => setIsSettingsOpen(true)}
-                className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-2 rounded-full hover:bg-gemini-input-bg transition-colors"
                 aria-label="打开设置"
             >
-                <SettingsIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                <SettingsIcon className="w-6 h-6" />
             </button>
         </header>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ChatWindow messages={messages} isLoading={isLoading} />
+        <ChatWindow messages={messages} isLoading={isLoading} onSuggestionClick={handleSuggestionClick} />
         <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
       </div>
 

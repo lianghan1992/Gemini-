@@ -1,13 +1,72 @@
-
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L8.35 12 5.21 7.21C5.08 6.79 5 6.38 5 6c0-3.9 2.93-7.13 6.74-7.85.17.02.34.05.51.05 4.41 0 8 3.59 8 8s-3.59 8-8 8c-.17 0-.34-.03-.51-.05z'/%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gemini 聊天</title>
+    <title>Gemini 高级聊天</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'gemini-bg': '#131314',
+              'gemini-chat-bg': '#1E1F20',
+              'gemini-user-bg': '#333740',
+              'gemini-bot-bg': '#252830',
+              'gemini-input-bg': '#1E1F20',
+              'gemini-border': '#333740',
+              'gemini-text': '#E3E3E3',
+              'gemini-text-secondary': '#9B9B9B',
+              'gemini-accent-start': '#89B5F7',
+              'gemini-accent-end': '#C1A4FF',
+            },
+            backgroundImage: {
+              'gemini-gradient': 'linear-gradient(to right, #89B5F7, #C1A4FF)',
+            },
+            keyframes: {
+                pulse: {
+                    '0%, 100%': { opacity: 1 },
+                    '50%': { opacity: 0.2 },
+                },
+            },
+            animation: {
+                pulse: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+        .prose {
+            --tw-prose-body: theme('colors.gemini-text');
+            --tw-prose-headings: theme('colors.gemini-text');
+            --tw-prose-lead: theme('colors.gemini-text-secondary');
+            --tw-prose-links: theme('colors.gemini-accent-start');
+            --tw-prose-bold: theme('colors.gemini-text');
+            --tw-prose-counters: theme('colors.gemini-text-secondary');
+            --tw-prose-bullets: theme('colors.gemini-border');
+            --tw-prose-hr: theme('colors.gemini-border');
+            --tw-prose-quotes: theme('colors.gemini-text');
+            --tw-prose-quote-borders: theme('colors.gemini-border');
+            --tw-prose-captions: theme('colors.gemini-text-secondary');
+            --tw-prose-code: theme('colors.gemini-text');
+            --tw-prose-pre-code: theme('colors.gemini-text');
+            --tw-prose-pre-bg: theme('colors.gemini-bg');
+            --tw-prose-th-borders: theme('colors.gemini-border');
+            --tw-prose-td-borders: theme('colors.gemini-border');
+        }
+    </style>
+<script type="importmap">
 {
   "imports": {
     "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.1",
@@ -17,13 +76,16 @@
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "rehype-katex": "https://aistudiocdn.com/rehype-katex@^7.0.1",
     "remark-math": "https://aistudiocdn.com/remark-math@^6.0.0",
-    "katex/": "https://aistudiocdn.com/katex@^0.16.25/"
+    "katex/": "https://aistudiocdn.com/katex@^0.16.25/",
+    "react-syntax-highlighter": "https://aistudiocdn.com/react-syntax-highlighter@^15.5.0",
+    "react-syntax-highlighter/dist/esm/styles/prism": "https://aistudiocdn.com/react-syntax-highlighter@^15.5.0/dist/esm/styles/prism",
+    "react-syntax-highlighter/": "https://aistudiocdn.com/react-syntax-highlighter@^16.1.0/"
   }
 }
 </script>
 <link rel="stylesheet" href="https://aistudiocdn.com/katex@^0.16.25/dist/katex.min.css" />
 </head>
-  <body class="bg-gray-100 dark:bg-gray-900">
+  <body class="bg-gemini-bg font-sans text-gemini-text">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
