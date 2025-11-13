@@ -7,13 +7,24 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 
+const BlinkingCursor: React.FC = () => (
+    <span className="inline-block w-2 h-5 bg-gray-700 dark:bg-gray-300 animate-pulse ml-1" />
+);
 
-const Message: React.FC<{ message: ChatMessage }> = ({ message }) => {
+const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ message, isStreaming }) => {
   const isUser = message.role === 'user';
 
   const renderContent = (content: string | MessageContentPart[]) => {
     if (typeof content === 'string') {
-      return <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>{content}</ReactMarkdown>;
+        const contentWithCursor = isStreaming ? content + ' ' : content;
+        return (
+            <div className="prose dark:prose-invert prose-p:my-0 prose-pre:my-2 prose-blockquote:my-2 max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                    {content}
+                </ReactMarkdown>
+                {isStreaming && <BlinkingCursor />}
+            </div>
+        );
     }
     return content.map((part, index) => {
       if (part.type === 'text' && part.text) {
@@ -31,7 +42,7 @@ const Message: React.FC<{ message: ChatMessage }> = ({ message }) => {
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isUser ? 'bg-indigo-500' : 'bg-gray-600'}`}>
         {isUser ? <UserIcon className="w-5 h-5 text-white" /> : <BotIcon className="w-5 h-5 text-white" />}
       </div>
-      <div className={`max-w-xl p-4 rounded-lg shadow-md prose dark:prose-invert prose-p:my-0 prose-pre:my-2 prose-blockquote:my-2 ${isUser ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+      <div className={`max-w-xl p-4 rounded-lg shadow-md ${isUser ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
         {renderContent(message.content)}
       </div>
     </div>

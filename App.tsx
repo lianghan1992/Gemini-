@@ -4,46 +4,56 @@ import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import Settings from './components/Settings';
 import { SettingsIcon } from './components/icons';
-import { fetchChatCompletion, fileToBase64 } from './services/api';
-
-const availableModels = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+import { fetchChatCompletionStream, fileToBase64, fetchModels } from './services/api';
 
 const App: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
-  const [baseUrl, setBaseUrl] = useState<string>('http://trojan.lianghan.site:60126');
-  const [model, setModel] = useState<string>(availableModels[0]);
+  const [model, setModel] = useState<string>('gemini-2.5-flash');
+  const [availableModels, setAvailableModels] = useState<string[]>(['gemini-2.5-flash', 'gemini-2.5-pro']);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  
+  // 使用相对路径，请求将发送到同一域名下的 /api 路径，由 Apache 反向代理处理
+  const baseUrl = '/api';
+
+  const updateModels = useCallback(async (key: string) => {
+    // API 请求现在会变成 /api/v1/models
+    const models = await fetchModels(key, baseUrl);
+    if (models.length > 0) {
+      setAvailableModels(models);
+      const storedModel = localStorage.getItem('gemini_model');
+      if (storedModel && models.includes(storedModel)) {
+        setModel(storedModel);
+      } else {
+        setModel(models[0]);
+        localStorage.setItem('gemini_model', models[0]);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem('gemini_api_key');
-    const storedBaseUrl = localStorage.getItem('gemini_base_url');
-    let storedModel = localStorage.getItem('gemini_model');
+    const storedModel = localStorage.getItem('gemini_model');
 
     if (storedApiKey) {
       setApiKey(storedApiKey);
+      updateModels(storedApiKey);
     } else {
       setIsSettingsOpen(true);
     }
-    if (storedBaseUrl) {
-      setBaseUrl(storedBaseUrl);
-    }
     
-    if (!storedModel || !availableModels.includes(storedModel)) {
-      storedModel = availableModels[0];
-      localStorage.setItem('gemini_model', storedModel);
+    if (storedModel) {
+        setModel(storedModel)
     }
-    setModel(storedModel);
-  }, []);
+  }, [updateModels]);
 
-  const handleSaveSettings = (newApiKey: string, newBaseUrl: string, newModel: string) => {
+  const handleSaveSettings = (newApiKey: string, newModel: string) => {
     setApiKey(newApiKey);
-    setBaseUrl(newBaseUrl);
     setModel(newModel);
     localStorage.setItem('gemini_api_key', newApiKey);
-    localStorage.setItem('gemini_base_url', newBaseUrl);
     localStorage.setItem('gemini_model', newModel);
+    updateModels(newApiKey);
   };
 
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
@@ -58,8 +68,6 @@ const App: React.FC = () => {
         setMessages(prev => [...prev, errorMsg]);
         return;
     }
-
-    setIsLoading(true);
 
     let content: string | MessageContentPart[] = text;
     if (file) {
@@ -80,7 +88,6 @@ const App: React.FC = () => {
                 timestamp: Date.now(),
             };
             setMessages(prev => [...prev, errorMsg]);
-            setIsLoading(false);
             return;
         }
     }
@@ -91,32 +98,48 @@ const App: React.FC = () => {
       content: content,
       timestamp: Date.now(),
     };
-
+    
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
+    setIsLoading(true);
 
-    try {
-      const assistantResponse = await fetchChatCompletion(newMessages, apiKey, baseUrl, model);
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+    const assistantId = (Date.now() + 1).toString();
+    const assistantMessage: ChatMessage = {
+        id: assistantId,
         role: 'assistant',
-        content: assistantResponse,
+        content: '',
         timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("API 调用失败:", error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: error instanceof Error ? `出现错误: ${error.message}` : '发生未知错误',
-        timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [apiKey, baseUrl, messages, model]);
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+
+    await fetchChatCompletionStream(
+      newMessages, 
+      apiKey, 
+      baseUrl, 
+      model,
+      (chunk) => {
+        setMessages(prev => prev.map(msg => 
+            msg.id === assistantId 
+                ? { ...msg, content: msg.content + chunk }
+                // @ts-ignore
+                : msg
+        ));
+      },
+      () => {
+        setIsLoading(false);
+      },
+      (error) => {
+        setMessages(prev => prev.map(msg => 
+            msg.id === assistantId 
+                ? { ...msg, content: `出现错误: ${error.message}` }
+                // @ts-ignore
+                : msg
+        ));
+        setIsLoading(false);
+      }
+    );
+
+  }, [apiKey, messages, model]);
 
   return (
     <div className="h-screen w-screen flex flex-col font-sans text-base text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-900">
@@ -141,8 +164,8 @@ const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         onSave={handleSaveSettings}
         initialApiKey={apiKey}
-        initialBaseUrl={baseUrl}
         initialModel={model}
+        availableModels={availableModels}
       />
     </div>
   );

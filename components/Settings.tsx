@@ -4,27 +4,33 @@ import { CloseIcon } from './icons';
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (apiKey: string, baseUrl: string, model: string) => void;
+  onSave: (apiKey: string, model: string) => void;
   initialApiKey: string;
-  initialBaseUrl: string;
   initialModel: string;
+  availableModels: string[];
 }
 
-const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApiKey, initialBaseUrl, initialModel }) => {
+const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApiKey, initialModel, availableModels }) => {
   const [apiKey, setApiKey] = useState(initialApiKey);
-  const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
   const [model, setModel] = useState(initialModel);
 
   useEffect(() => {
     setApiKey(initialApiKey);
-    setBaseUrl(initialBaseUrl);
     setModel(initialModel);
-  }, [initialApiKey, initialBaseUrl, initialModel, isOpen]);
+  }, [initialApiKey, initialModel, isOpen]);
+  
+  // Ensure the selected model is always in the available list when the list changes
+  useEffect(() => {
+    if (availableModels.length > 0 && !availableModels.includes(model)) {
+      setModel(availableModels[0]);
+    }
+  }, [availableModels, model]);
+
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(apiKey, baseUrl, model);
+    onSave(apiKey, model);
     onClose();
   };
 
@@ -59,22 +65,12 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, onSave, initialApi
               onChange={(e) => setModel(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md text-gray-900 dark:text-gray-100"
             >
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              {availableModels.length > 0 ? (
+                availableModels.map(modelName => <option key={modelName} value={modelName}>{modelName}</option>)
+              ) : (
+                <option value={model} disabled>{model}</option>
+              )}
             </select>
-          </div>
-          <div>
-            <label htmlFor="baseUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              API Base URL
-            </label>
-            <input
-              type="text"
-              id="baseUrl"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="例如: http://localhost:8080"
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-gray-100"
-            />
           </div>
         </div>
         <div className="mt-6 flex justify-end">

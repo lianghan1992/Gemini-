@@ -9,14 +9,18 @@ interface ApiPayload {
   stream: boolean;
 }
 
-interface ApiResponse {
-  choices: {
-    message: {
-      role: 'assistant';
-      content: string;
-    };
-  }[];
+interface ApiModel {
+    id: string;
+    object: string;
+    created: number;
+    owned_by: string;
 }
+
+interface ApiModelsResponse {
+    object: 'list';
+    data: ApiModel[];
+}
+
 
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -27,20 +31,40 @@ export const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+export const fetchModels = async (apiKey: string, baseUrl: string): Promise<string[]> => {
+    const url = `${baseUrl.replace(/\/$/, "")}/v1/models`;
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`获取模型列表失败: ${response.status}`);
+        }
+        const data: ApiModelsResponse = await response.json();
+        return data.data.map(model => model.id).sort();
+    } catch (error) {
+        console.error("获取模型时出错:", error);
+        return [];
+    }
+}
 
-export const fetchChatCompletion = async (
+
+export const fetchChatCompletionStream = async (
   messages: ChatMessage[],
   apiKey: string,
   baseUrl: string,
-  model: string
-): Promise<string> => {
-  // Make URL construction more robust
+  model: string,
+  onUpdate: (chunk: string) => void,
+  onFinish: () => void,
+  onError: (error: Error) => void
+) => {
   const url = `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
-
   const payload: ApiPayload = {
     model: model,
     messages: messages.map(({ role, content }) => ({ role, content })).filter(m => m.role !== 'system') as ApiPayload['messages'],
-    stream: false,
+    stream: true,
   };
 
   try {
@@ -53,27 +77,59 @@ export const fetchChatCompletion = async (
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
+    if (!response.ok || !response.body) {
       const errorBody = await response.text();
       console.error('API Error Response:', errorBody);
       throw new Error(`API 请求失败，状态码: ${response.status}. ${errorBody}`);
     }
 
-    const data: ApiResponse = await response.json();
-    
-    if (data.choices && data.choices.length > 0) {
-      return data.choices[0].message.content;
-    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-    throw new Error('API 响应中没有找到有效的回答');
+    const processStream = async () => {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '' || !line.startsWith('data:')) {
+            continue;
+          }
+          
+          const jsonStr = line.replace(/^data: /, '').trim();
+          if (jsonStr === '[DONE]') {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              onUpdate(content);
+            }
+          } catch (e) {
+            console.error('无法解析流中的JSON:', jsonStr, e);
+          }
+        }
+      }
+    };
+    
+    await processStream();
+    onFinish();
+
   } catch (error) {
     console.error('调用 API 时出错:', error);
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      return `网络请求失败。请检查您的网络连接，并确保 API Base URL 正确且服务器允许跨域请求 (CORS)。`;
-    }
     if (error instanceof Error) {
-        return `发生错误: ${error.message}`;
+        onError(error);
+    } else {
+        onError(new Error('发生未知错误'));
     }
-    return '发生未知错误';
   }
 };

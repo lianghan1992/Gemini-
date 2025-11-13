@@ -29,23 +29,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading }) => {
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
       {messages.length === 0 && !isLoading && <InitialScreen />}
-      {messages.map((msg) => (
-        <Message key={msg.id} message={msg} />
-      ))}
-      {isLoading && (
-         <div className="flex items-start gap-4 p-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
-                <BotIcon className="w-5 h-5 text-white" />
-            </div>
-            <div className="max-w-xl p-4 rounded-lg shadow-md bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-            </div>
-        </div>
-      )}
+      {messages.map((msg, index) => {
+        const isStreaming = isLoading && msg.role === 'assistant' && index === messages.length - 1;
+        return <Message key={msg.id} message={msg} isStreaming={isStreaming} />
+      })}
     </div>
   );
 };
