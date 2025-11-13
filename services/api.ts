@@ -3,10 +3,13 @@ import { ChatMessage } from '../types';
 interface ApiPayload {
   model: string;
   messages: {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     content: ChatMessage['content'];
   }[];
   stream: boolean;
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
 }
 
 interface ApiModel {
@@ -99,16 +102,34 @@ export const fetchChatCompletionStream = async (
   apiKey: string,
   baseUrl: string,
   model: string,
+  systemPrompt: string | undefined,
+  temperature: number | undefined,
+  topP: number | undefined,
+  maxTokens: number | undefined,
   onUpdate: (chunk: string) => void,
   onFinish: () => void,
   onError: (error: Error) => void
 ) => {
   const url = `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
+  
+  const apiMessages: ApiPayload['messages'] = messages
+    .map(({ role, content }) => ({ role, content }))
+    .filter(m => m.role === 'user' || m.role === 'assistant') as ApiPayload['messages'];
+
+  if (systemPrompt && systemPrompt.trim() !== '') {
+    apiMessages.unshift({ role: 'system', content: systemPrompt });
+  }
+
   const payload: ApiPayload = {
     model: model,
-    messages: messages.map(({ role, content }) => ({ role, content })).filter(m => m.role !== 'system') as ApiPayload['messages'],
+    messages: apiMessages,
     stream: true,
   };
+  
+  if (temperature !== undefined) payload.temperature = temperature;
+  if (topP !== undefined) payload.top_p = topP;
+  if (maxTokens !== undefined && maxTokens > 0) payload.max_tokens = maxTokens;
+
 
   try {
     const response = await fetch(url, {

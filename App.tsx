@@ -28,6 +28,12 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+
+  // Advanced settings state
+  const [systemPrompt, setSystemPrompt] = useState<string>('You are a helpful assistant.');
+  const [temperature, setTemperature] = useState<number>(0.7);
+  const [topP, setTopP] = useState<number>(1.0);
+  const [maxTokens, setMaxTokens] = useState<number>(0);
   
   const baseUrl = '/api';
 
@@ -57,13 +63,40 @@ const App: React.FC = () => {
     } else {
       setIsSettingsOpen(true);
     }
+    
+    // Load advanced settings
+    const storedSystemPrompt = localStorage.getItem('gemini_system_prompt');
+    if (storedSystemPrompt) setSystemPrompt(storedSystemPrompt);
+
+    const storedTemperature = localStorage.getItem('gemini_temperature');
+    if (storedTemperature) setTemperature(parseFloat(storedTemperature));
+
+    const storedTopP = localStorage.getItem('gemini_top_p');
+    if (storedTopP) setTopP(parseFloat(storedTopP));
+
+    const storedMaxTokens = localStorage.getItem('gemini_max_tokens');
+    if (storedMaxTokens) setMaxTokens(parseInt(storedMaxTokens, 10));
+
   }, [updateModels, availableModels.length]);
 
-  const handleSaveSettings = (newApiKey: string, newModel: string) => {
+  const handleSaveSettings = (
+      newApiKey: string, newModel: string, newSystemPrompt: string,
+      newTemperature: number, newTopP: number, newMaxTokens: number
+    ) => {
     setApiKey(newApiKey);
     setModel(newModel);
+    setSystemPrompt(newSystemPrompt);
+    setTemperature(newTemperature);
+    setTopP(newTopP);
+    setMaxTokens(newMaxTokens);
+
     localStorage.setItem('gemini_api_key', newApiKey);
     localStorage.setItem('gemini_model', newModel);
+    localStorage.setItem('gemini_system_prompt', newSystemPrompt);
+    localStorage.setItem('gemini_temperature', newTemperature.toString());
+    localStorage.setItem('gemini_top_p', newTopP.toString());
+    localStorage.setItem('gemini_max_tokens', newMaxTokens.toString());
+    
     updateModels(newApiKey);
   };
 
@@ -113,6 +146,7 @@ const App: React.FC = () => {
     addMessageToConversation(currentConversationId, assistantMessage, (updatedMessages) => {
         fetchChatCompletionStream(
             updatedMessages, apiKey, baseUrl, model,
+            systemPrompt, temperature, topP, maxTokens,
             (chunk) => {
                 addMessageToConversation(currentConversationId!, assistantId, chunk);
             },
@@ -131,7 +165,7 @@ const App: React.FC = () => {
             }
         );
     });
-  }, [apiKey, model, availableModels, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle]);
+  }, [apiKey, model, availableModels, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -193,6 +227,10 @@ const App: React.FC = () => {
             initialApiKey={apiKey}
             initialModel={model}
             availableModels={availableModels}
+            initialSystemPrompt={systemPrompt}
+            initialTemperature={temperature}
+            initialTopP={topP}
+            initialMaxTokens={maxTokens}
         />
     </div>
   );

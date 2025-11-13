@@ -15,9 +15,25 @@ const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ me
   const isUser = message.role === 'user';
 
   const renderContent = (content: string | MessageContentPart[]) => {
+    if (Array.isArray(content)) {
+      return (
+        <div className="flex flex-col gap-2">
+          {content.map((part, index) => {
+            if (part.type === 'text' && part.text) {
+              return <p key={index} className="whitespace-pre-wrap">{part.text}</p>;
+            }
+            if (part.type === 'image_url' && part.image_url) {
+              return <img key={index} src={part.image_url.url} alt="上传的图片" className="mt-2 rounded-lg max-w-xs" />;
+            }
+            return null;
+          })}
+        </div>
+      );
+    }
+    
     if (typeof content === 'string') {
         return (
-            <div className="prose prose-p:my-2 prose-pre:my-2 prose-blockquote:my-2 max-w-none">
+            <div className="prose prose-p:my-2 prose-pre:my-2 prose-blockquote:my-2 max-w-none dark:prose-invert">
                 <ReactMarkdown 
                     remarkPlugins={[remarkMath, remarkGfm]} 
                     rehypePlugins={[rehypeKatex]}
@@ -41,19 +57,8 @@ const Message: React.FC<{ message: ChatMessage; isStreaming?: boolean }> = ({ me
             </div>
         );
     }
-    return (
-      <div className="flex flex-col gap-2">
-        {content.map((part, index) => {
-          if (part.type === 'text' && part.text) {
-            return <p key={index} className="whitespace-pre-wrap">{part.text}</p>;
-          }
-          if (part.type === 'image_url' && part.image_url) {
-            return <img key={index} src={part.image_url.url} alt="上传的图片" className="mt-2 rounded-lg max-w-xs" />;
-          }
-          return null;
-        })}
-      </div>
-    );
+    
+    return null; // Fallback for any other type
   };
 
   return (
