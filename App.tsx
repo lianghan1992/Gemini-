@@ -119,16 +119,19 @@ const App: React.FC = () => {
       return;
     }
 
-    const isNewConversation = !activeConversation?.id;
+    const isNewConversation = !activeConversation || activeConversation.messages.length === 0;
     let currentConversationId = activeConversation?.id;
     
-    // Create a new conversation if needed
+    // If there's no active conversation, create one.
+    if (!currentConversationId) {
+      currentConversationId = createNewConversation();
+    }
+
+    // For any new conversation (empty or just created), set a temp title.
     if (isNewConversation) {
-        currentConversationId = createNewConversation();
-        // Set a temporary title immediately
-        const userMessageText = text || (file ? "图像消息" : "新对话");
-        const tempTitle = userMessageText.substring(0, 20) + (userMessageText.length > 20 ? '...' : '');
-        updateConversationTitle(currentConversationId, tempTitle);
+      const userMessageText = text || (file ? "图像消息" : "新对话");
+      const tempTitle = userMessageText.substring(0, 20) + (userMessageText.length > 20 ? '...' : '');
+      updateConversationTitle(currentConversationId, tempTitle);
     }
     
     let content: string | MessageContentPart[] = text;
@@ -246,7 +249,7 @@ const App: React.FC = () => {
                     isLoading={isLoading} 
                     onSuggestionClick={handleSuggestionClick} 
                 />
-                <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+                <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} model={model} />
             </main>
         </div>
 

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendIcon, AttachmentIcon, CloseIcon } from './icons';
+import { PlusIcon, CloseIcon, MicIcon, ArrowUpwardIcon, KeyboardArrowDownIcon } from './icons';
 
 interface MessageInputProps {
   onSendMessage: (text: string, file?: File) => void;
   isLoading: boolean;
+  model: string;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, model }) => {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -17,7 +18,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${scrollHeight}px`;
+      const maxHeight = 200; // Corresponds to max-h-[200px]
+      textareaRef.current.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
     }
   }, [text]);
 
@@ -77,6 +79,14 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
     }
   };
 
+  const formatModelName = (name: string) => {
+    return name
+        .replace(/gemini-|-pro|-latest/gi, '')
+        .replace(/flash/gi, ' Flash')
+        .replace(/2 5/gi, '2.5')
+        .trim();
+  };
+
   const canSend = !isLoading && (text.trim() !== '' || !!file);
 
   return (
@@ -96,7 +106,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
         )}
         <div 
           onPaste={handlePaste}
-          className="flex items-end bg-input-bg dark:bg-dark-input-bg rounded-2xl p-2.5 border border-border dark:border-dark-border focus-within:ring-2 focus-within:ring-accent-start/50 dark:focus-within:ring-dark-accent-start/50 focus-within:border-accent-start dark:focus-within:border-dark-accent-start transition-all duration-300 shadow-input dark:shadow-input-dark"
+          className="flex items-end bg-sidebar dark:bg-dark-sidebar rounded-3xl p-2 border border-transparent focus-within:border-accent-start/50 dark:focus-within:border-dark-accent-start/50 transition-all duration-300 shadow-input dark:shadow-input-dark"
         >
             <input
                 type="file"
@@ -107,10 +117,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
             />
             <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary transition-colors"
+                className="p-2 rounded-full text-text-secondary dark:text-dark-text-secondary hover:bg-user-bg dark:hover:bg-dark-user-bg transition-colors"
                 aria-label="附加文件"
             >
-                <AttachmentIcon className="w-6 h-6" />
+                <PlusIcon className="w-6 h-6" />
             </button>
             <textarea
                 ref={textareaRef}
@@ -122,22 +132,34 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
                         handleSend();
                     }
                 }}
-                placeholder="输入消息，或粘贴图片..."
+                placeholder="问问 Gemini"
                 rows={1}
-                className="flex-1 bg-transparent border-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-[320px] overflow-y-auto"
+                className="flex-1 mx-2 bg-transparent border-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-[200px] overflow-y-auto"
             />
-            <button
-                onClick={handleSend}
-                disabled={!canSend}
-                className={`p-2 rounded-full transition-all duration-300 ${
-                  canSend
-                    ? 'bg-gemini-gradient dark:bg-dark-gemini-gradient text-white shadow-md hover:shadow-lg'
-                    : 'bg-user-bg dark:bg-dark-user-bg text-text-secondary dark:text-dark-text-secondary cursor-not-allowed'
-                }`}
-                aria-label="发送消息"
-            >
-                <SendIcon className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+                <div className="hidden sm:flex items-center gap-1 text-sm text-text-secondary dark:text-dark-text-secondary bg-user-bg dark:bg-dark-user-bg py-1 px-3 rounded-full">
+                    <span>{formatModelName(model)}</span>
+                    <KeyboardArrowDownIcon className="w-5 h-5"/>
+                </div>
+                <button
+                    className="p-2 rounded-full text-text-secondary dark:text-dark-text-secondary hover:bg-user-bg dark:hover:bg-dark-user-bg transition-colors"
+                    aria-label="使用麦克风"
+                >
+                    <MicIcon className="w-6 h-6"/>
+                </button>
+                <button
+                    onClick={handleSend}
+                    disabled={!canSend}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
+                    canSend
+                        ? 'bg-gemini-gradient dark:bg-dark-gemini-gradient text-white shadow-md hover:shadow-lg'
+                        : 'bg-user-bg dark:bg-dark-user-bg text-text-secondary dark:text-dark-text-secondary cursor-not-allowed'
+                    }`}
+                    aria-label="发送消息"
+                >
+                    <ArrowUpwardIcon className="w-5 h-5" />
+                </button>
+            </div>
         </div>
       </div>
     </div>
