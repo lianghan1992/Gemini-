@@ -24,6 +24,64 @@ interface ApiModelsResponse {
     data: ApiModel[];
 }
 
+// Helper to generate JWT for Zhipu AI
+const generateJwtToken = async (apiKey: string): Promise<string> => {
+    const [id, secret] = apiKey.split('.');
+    if (!id || !secret) {
+        throw new Error('无效的智谱AI API密钥格式。应为 "id.secret"。');
+    }
+
+    const now = Date.now();
+    const payload = {
+        api_key: id,
+        exp: now + 2 * 60 * 1000, // Expires in 2 minutes
+        timestamp: now,
+    };
+    
+    const header = {
+        alg: 'HS256',
+        sign_type: 'SIGN',
+    };
+
+    // URL-safe Base64 encoding
+    const toBase64Url = (data: string) => {
+        return btoa(data)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
+    };
+    
+    const encodedHeader = toBase64Url(JSON.stringify(header));
+    const encodedPayload = toBase64Url(JSON.stringify(payload));
+    
+    const signatureInput = `${encodedHeader}.${encodedPayload}`;
+    
+    const key = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+    );
+
+    const signature = await crypto.subtle.sign(
+        'HMAC',
+        key,
+        new TextEncoder().encode(signatureInput)
+    );
+
+    // Convert ArrayBuffer to Base64 string
+    const signatureBytes = new Uint8Array(signature);
+    let binaryString = '';
+    signatureBytes.forEach(byte => {
+        binaryString += String.fromCharCode(byte);
+    });
+    
+    const encodedSignature = toBase64Url(binaryString);
+
+    return `${signatureInput}.${encodedSignature}`;
+};
+
 
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -53,46 +111,54 @@ export const fetchModels = async (apiKey: string, baseUrl: string): Promise<stri
     }
 }
 
-export const generateTitle = async (
-  userMessage: ChatMessage['content'],
-  apiKey: string,
-  baseUrl: string,
-  model: string
+export const generateTitleWithZhipu = async (
+  messages: ChatMessage[],
+  apiKey: string
 ): Promise<string> => {
-    const url = `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
-    const userContent = typeof userMessage === 'string' ? userMessage : (
-        Array.isArray(userMessage) 
-        ? userMessage.find(p => p.type === 'text')?.text || 'Image Conversation'
-        : 'New Conversation'
-    );
+    const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant');
 
-    const prompt = `为以下对话生成一个简短、简洁的标题（不超过5个词）:\n\n用户: "${userContent.substring(0, 100)}..."\n\n标题:`;
+    if (!lastUserMessage || !lastAssistantMessage) {
+        return "新对话";
+    }
+    
+    const userContent = typeof lastUserMessage.content === 'string' ? lastUserMessage.content : 
+        (lastUserMessage.content.find(p => p.type === 'text')?.text || '');
+    const assistantContent = typeof lastAssistantMessage.content === 'string' ? lastAssistantMessage.content : '';
+
+    const prompt = `为以下对话生成一个简短、简洁的标题（不超过5个词，直接返回标题，不要任何多余的文字）:\n\n用户: "${userContent.substring(0, 100)}..."\n\n助手: "${assistantContent.substring(0, 150)}..."\n\n标题:`;
 
     const payload = {
-        model,
+        model: 'glm-3-turbo',
         messages: [{ role: 'user', content: prompt }],
-        stream: false,
         max_tokens: 20,
+        temperature: 0.1,
     };
 
     try {
+        const token = await generateJwtToken(apiKey);
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(payload),
         });
+
         if (!response.ok) {
-            return "新对话";
+            const errorBody = await response.text();
+            throw new Error(`Zhipu API request failed: ${response.status} ${errorBody}`);
         }
+
         const data = await response.json();
-        let title = data.choices?.[0]?.message?.content?.trim().replace(/["']/g, "") || "新对话";
+        let title = data.choices?.[0]?.message?.content?.trim().replace(/["'“”]/g, "") || "新对话";
         return title;
     } catch (error) {
-        console.error("生成标题失败:", error);
-        return "新对话";
+        console.error("生成智谱标题失败:", error);
+        throw error;
     }
 };
 

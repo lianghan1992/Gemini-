@@ -10,7 +10,8 @@ interface SettingsProps {
     systemPrompt: string,
     temperature: number,
     topP: number,
-    maxTokens: number
+    maxTokens: number,
+    zhipuApiKey: string,
   ) => void;
   initialApiKey: string;
   initialModel: string;
@@ -19,14 +20,17 @@ interface SettingsProps {
   initialTemperature: number;
   initialTopP: number;
   initialMaxTokens: number;
+  initialZhipuApiKey: string;
 }
 
 const Settings: React.FC<SettingsProps> = ({ 
     isOpen, onClose, onSave, 
     initialApiKey, initialModel, availableModels,
-    initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens
+    initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens,
+    initialZhipuApiKey
 }) => {
   const [apiKey, setApiKey] = useState(initialApiKey);
+  const [zhipuApiKey, setZhipuApiKey] = useState(initialZhipuApiKey);
   const [model, setModel] = useState(initialModel);
   const [systemPrompt, setSystemPrompt] = useState(initialSystemPrompt);
   const [temperature, setTemperature] = useState(initialTemperature);
@@ -35,12 +39,13 @@ const Settings: React.FC<SettingsProps> = ({
 
   useEffect(() => {
     setApiKey(initialApiKey);
+    setZhipuApiKey(initialZhipuApiKey);
     setModel(initialModel);
     setSystemPrompt(initialSystemPrompt);
     setTemperature(initialTemperature);
     setTopP(initialTopP);
     setMaxTokens(initialMaxTokens);
-  }, [initialApiKey, initialModel, initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens, isOpen]);
+  }, [initialApiKey, initialZhipuApiKey, initialModel, initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens, isOpen]);
   
   useEffect(() => {
     if (availableModels.length > 0 && !availableModels.includes(model)) {
@@ -52,11 +57,72 @@ const Settings: React.FC<SettingsProps> = ({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(apiKey, model, systemPrompt, temperature, topP, maxTokens);
+    onSave(apiKey, model, systemPrompt, temperature, topP, maxTokens, zhipuApiKey);
     onClose();
   };
 
+  const handleExport = () => {
+    try {
+        const data = {
+            'gemini_conversations': localStorage.getItem('gemini_conversations'),
+            'gemini_api_key': localStorage.getItem('gemini_api_key'),
+            'gemini_zhipu_api_key': localStorage.getItem('gemini_zhipu_api_key'),
+            'gemini_model': localStorage.getItem('gemini_model'),
+            'gemini_system_prompt': localStorage.getItem('gemini_system_prompt'),
+            'gemini_temperature': localStorage.getItem('gemini_temperature'),
+            'gemini_top_p': localStorage.getItem('gemini_top_p'),
+            'gemini_max_tokens': localStorage.getItem('gemini_max_tokens'),
+            'gemini_theme': localStorage.getItem('gemini_theme'),
+        };
+        // Filter out null values
+        const filteredData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v != null));
+
+        const blob = new Blob([JSON.stringify(filteredData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gemini-chat-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("导出数据失败:", error);
+        alert("导出数据失败。");
+    }
+  };
+
+  const handleImport = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              try {
+                  const data = JSON.parse(event.target?.result as string);
+                  if (confirm('这将覆盖您当前的设置和聊天记录。您确定要继续吗？')) {
+                      Object.keys(data).forEach(key => {
+                          localStorage.setItem(key, data[key]);
+                      });
+                      alert('导入成功！页面将刷新以应用更改。');
+                      window.location.reload();
+                  }
+              } catch (error) {
+                  alert('导入失败：无效的 JSON 文件。');
+                  console.error('导入错误:', error);
+              }
+          };
+          reader.readAsText(file);
+      };
+      input.click();
+  };
+
   const commonInputClasses = "mt-1 block w-full px-3 py-2 bg-input-bg dark:bg-dark-input-bg border border-border dark:border-dark-border rounded-md shadow-sm placeholder-text-secondary dark:placeholder-dark-text-secondary focus:outline-none focus:ring-accent-start dark:focus:ring-dark-accent-start focus:border-accent-start dark:focus:border-dark-accent-start sm:text-sm text-text-primary dark:text-dark-text-primary";
+  const commonButtonClasses = "px-3 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-chat-bg dark:focus:ring-offset-dark-chat-bg";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center font-sans">
@@ -68,7 +134,7 @@ const Settings: React.FC<SettingsProps> = ({
         <div className="space-y-4">
           <div>
             <label htmlFor="apiKey" className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary">
-              API 密钥
+              Gemini API 密钥
             </label>
             <input
               type="password"
@@ -78,6 +144,20 @@ const Settings: React.FC<SettingsProps> = ({
               placeholder="请在此处输入您的 API 密钥"
               className={commonInputClasses}
             />
+          </div>
+          <div>
+            <label htmlFor="zhipuApiKey" className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary">
+              智谱AI API密钥 (用于标题生成)
+            </label>
+            <input
+              type="password"
+              id="zhipuApiKey"
+              value={zhipuApiKey}
+              onChange={(e) => setZhipuApiKey(e.target.value)}
+              placeholder="可选，格式：xxxxxxxx.xxxxxxxx"
+              className={commonInputClasses}
+            />
+             <p className="mt-1 text-xs text-text-secondary dark:text-dark-text-secondary">填写后，新对话将由智谱AI自动生成标题。</p>
           </div>
            <div>
             <label htmlFor="model" className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary">
@@ -145,6 +225,19 @@ const Settings: React.FC<SettingsProps> = ({
             />
             <p className="mt-1 text-xs text-text-secondary dark:text-dark-text-secondary">响应中生成的最大令牌数。0 表示不限制。</p>
           </div>
+          
+          <hr className="border-border dark:border-dark-border" />
+          <div className="space-y-3 pt-2">
+            <h3 className="text-lg font-medium text-text-primary dark:text-dark-text-primary">数据迁移</h3>
+            <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+              您的所有对话历史和设置都安全地存储在您当前浏览器的本地存储中。要将数据迁移到另一台电脑或浏览器，请使用下面的按钮。
+            </p>
+            <div className="flex gap-4">
+              <button onClick={handleExport} className={`${commonButtonClasses} bg-sidebar dark:bg-dark-sidebar border border-border dark:border-dark-border hover:bg-user-bg dark:hover:bg-dark-user-bg`}>导出数据</button>
+              <button onClick={handleImport} className={`${commonButtonClasses} bg-sidebar dark:bg-dark-sidebar border border-border dark:border-dark-border hover:bg-user-bg dark:hover:bg-dark-user-bg`}>导入数据</button>
+            </div>
+          </div>
+
 
         </div>
         <div className="mt-6 flex justify-end">

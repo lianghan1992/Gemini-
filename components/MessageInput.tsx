@@ -39,6 +39,21 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
       setFile(e.target.files[0]);
     }
   };
+  
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          setFile(file);
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+  };
+
 
   const removeFile = () => {
       setFile(null);
@@ -61,7 +76,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
                 </div>
             </div>
         )}
-        <div className="flex items-end bg-input-bg dark:bg-dark-input-bg rounded-2xl p-2.5 border border-border dark:border-dark-border focus-within:border-accent-start dark:focus-within:border-dark-accent-start transition-colors shadow-input dark:shadow-input-dark">
+        <div 
+          onPaste={handlePaste}
+          className="flex items-end bg-input-bg dark:bg-dark-input-bg rounded-2xl p-2.5 border border-border dark:border-dark-border focus-within:border-accent-start dark:focus-within:border-dark-accent-start transition-colors shadow-input dark:shadow-input-dark"
+        >
             <input
                 type="file"
                 ref={fileInputRef}
@@ -85,7 +103,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading })
                         handleSend();
                     }
                 }}
-                placeholder="输入消息..."
+                placeholder="输入消息，或粘贴图片..."
                 rows={1}
                 className="flex-1 bg-transparent border-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-48 overflow-y-auto"
             />

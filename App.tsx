@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChatMessage, MessageContentPart } from './types';
+// FIX: Import `Conversation` type to resolve missing type error.
+import { ChatMessage, MessageContentPart, Conversation } from './types';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import Settings from './components/Settings';
 import Sidebar from './components/Sidebar';
 import { MenuIcon } from './components/icons';
-import { fetchChatCompletionStream, fileToBase64, fetchModels, generateTitle } from './services/api';
+import { fetchChatCompletionStream, fileToBase64, fetchModels, generateTitleWithZhipu } from './services/api';
 import { useTheme } from './hooks/useTheme';
 import { useConversations } from './hooks/useConversations';
 
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   } = useConversations();
   
   const [apiKey, setApiKey] = useState<string>('');
+  const [zhipuApiKey, setZhipuApiKey] = useState<string>('');
   const [baseUrl] = useState<string>('/api'); // 硬编码以匹配反向代理
   const [model, setModel] = useState<string>('gemini-2.5-flash');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -64,6 +66,9 @@ const App: React.FC = () => {
       setIsSettingsOpen(true);
     }
     
+    const storedZhipuApiKey = localStorage.getItem('gemini_zhipu_api_key');
+    if (storedZhipuApiKey) setZhipuApiKey(storedZhipuApiKey);
+
     // Load advanced settings
     const storedSystemPrompt = localStorage.getItem('gemini_system_prompt');
     if (storedSystemPrompt) setSystemPrompt(storedSystemPrompt);
@@ -81,9 +86,11 @@ const App: React.FC = () => {
 
   const handleSaveSettings = (
       newApiKey: string, newModel: string, newSystemPrompt: string,
-      newTemperature: number, newTopP: number, newMaxTokens: number
+      newTemperature: number, newTopP: number, newMaxTokens: number,
+      newZhipuApiKey: string,
     ) => {
     setApiKey(newApiKey);
+    setZhipuApiKey(newZhipuApiKey);
     setModel(newModel);
     setSystemPrompt(newSystemPrompt);
     setTemperature(newTemperature);
@@ -91,6 +98,7 @@ const App: React.FC = () => {
     setMaxTokens(newMaxTokens);
 
     localStorage.setItem('gemini_api_key', newApiKey);
+    localStorage.setItem('gemini_zhipu_api_key', newZhipuApiKey);
     localStorage.setItem('gemini_model', newModel);
     localStorage.setItem('gemini_system_prompt', newSystemPrompt);
     localStorage.setItem('gemini_temperature', newTemperature.toString());
@@ -106,11 +114,16 @@ const App: React.FC = () => {
       return;
     }
 
+    const isNewConversation = !activeConversation?.id;
     let currentConversationId = activeConversation?.id;
-    const isNewConversation = !currentConversationId;
 
     if (isNewConversation) {
         currentConversationId = createNewConversation();
+        const userMessageText = text || (file ? "图像消息" : "");
+        if (userMessageText) {
+            const tempTitle = userMessageText.substring(0, 20) + (userMessageText.length > 20 ? '...' : '');
+            updateConversationTitle(currentConversationId, tempTitle);
+        }
     }
     
     let content: string | MessageContentPart[] = text;
@@ -141,7 +154,6 @@ const App: React.FC = () => {
         id: assistantId, role: 'assistant', content: '', timestamp: Date.now(),
     };
     
-    // 一次性添加用户和助手占位消息，以避免状态抖动
     addMessageToConversation(currentConversationId!, [userMessage, assistantMessage]);
     setIsLoading(true);
 
@@ -153,10 +165,29 @@ const App: React.FC = () => {
         },
         () => {
             setIsLoading(false);
-            if (isNewConversation) {
-                generateTitle(userMessage.content, apiKey, baseUrl, model).then(title => {
-                    updateConversationTitle(currentConversationId!, title);
-                });
+            if (isNewConversation && zhipuApiKey) {
+                // The conversation state will be updated, find the latest version
+                const finalConversation = conversations.find(c => c.id === currentConversationId!);
+                const finalMessages = [...(finalConversation?.messages || []), userMessage];
+                // The final assistant message is not in `finalConversation.messages` yet due to streaming
+                // so we pass the userMessage to ensure the API has context.
+                // A better approach is to get the final state from the hook. For now, this is a good approximation.
+                
+                // Let's get the most up-to-date conversation from local storage to be safe
+                const latestConvos: Conversation[] = JSON.parse(localStorage.getItem('gemini_conversations') || '[]');
+                const updatedConv = latestConvos.find(c => c.id === currentConversationId!);
+
+                if (updatedConv && updatedConv.messages.length > 0) {
+                    generateTitleWithZhipu(updatedConv.messages, zhipuApiKey)
+                    .then(title => {
+                        if (title && title !== '新对话') {
+                            updateConversationTitle(currentConversationId!, title);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Zhipu title generation failed, keeping temporary title.", err);
+                    });
+                }
             }
         },
         (error) => {
@@ -165,7 +196,7 @@ const App: React.FC = () => {
             setIsLoading(false);
         }
     );
-  }, [apiKey, baseUrl, model, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
+  }, [apiKey, baseUrl, model, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens, zhipuApiKey, conversations]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -225,6 +256,7 @@ const App: React.FC = () => {
             onClose={() => setIsSettingsOpen(false)}
             onSave={handleSaveSettings}
             initialApiKey={apiKey}
+            initialZhipuApiKey={zhipuApiKey}
             initialModel={model}
             availableModels={availableModels}
             initialSystemPrompt={systemPrompt}
