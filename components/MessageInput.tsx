@@ -134,7 +134,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, m
                 }}
                 placeholder="问问 Gemini"
                 rows={1}
-                className="flex-1 mx-2 bg-transparent border-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-[200px] overflow-y-auto"
+                className="flex-1 mx-2 bg-transparent border-0 outline-none focus:ring-0 resize-none text-text-primary dark:text-dark-text-primary placeholder-text-secondary dark:placeholder-dark-text-secondary max-h-[200px] overflow-y-auto"
             />
             <div className="flex items-center gap-1 shrink-0">
                 <div className="hidden sm:flex items-center gap-1 text-sm text-text-secondary dark:text-dark-text-secondary bg-user-bg dark:bg-dark-user-bg py-1 px-3 rounded-full">

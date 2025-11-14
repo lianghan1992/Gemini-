@@ -57,12 +57,14 @@ export const useConversations = () => {
     }, []);
     
     const deleteConversation = useCallback((id: string) => {
-        const updatedConversations = conversations.filter(c => c.id !== id);
-        setConversations(updatedConversations);
-        if (activeConversationId === id) {
-            setActiveConversationId(updatedConversations.length > 0 ? updatedConversations[0].id : null);
-        }
-    }, [conversations, activeConversationId]);
+        setConversations(prev => {
+            const updated = prev.filter(c => c.id !== id);
+            if (activeConversationId === id) {
+                setActiveConversationId(updated.length > 0 ? updated[0].id : null);
+            }
+            return updated;
+        });
+    }, [activeConversationId]);
     
     const updateConversationTitle = useCallback((id: string, title: string) => {
         setConversations(prev => prev.map(c => 
@@ -78,21 +80,21 @@ export const useConversations = () => {
         setConversations(prev => {
             return prev.map(c => {
                 if (c.id === conversationId) {
-                    let newMessages: ChatMessage[];
+                    const newConversation = { ...c };
                     if (typeof messageOrChunk === 'string') { // It's a chunk for streaming or error message
-                        newMessages = [...c.messages];
-                        const lastMessage = newMessages[newMessages.length - 1];
+                        const lastMessage = newConversation.messages[newConversation.messages.length - 1];
                         if (lastMessage && lastMessage.role === 'assistant') {
                            const newContent = overwriteLast ? messageOrChunk : (lastMessage.content as string) + messageOrChunk;
-                           newMessages[newMessages.length - 1] = { ...lastMessage, content: newContent };
+                           // To ensure re-render, create new message and messages array
+                           const updatedLastMessage = { ...lastMessage, content: newContent };
+                           newConversation.messages = [...newConversation.messages.slice(0, -1), updatedLastMessage];
                         }
                     } else if (Array.isArray(messageOrChunk)) { // It's an array of messages
-                        newMessages = [...c.messages, ...messageOrChunk];
+                        newConversation.messages = [...newConversation.messages, ...messageOrChunk];
+                    } else { // It's a single full message object
+                        newConversation.messages = [...newConversation.messages, messageOrChunk];
                     }
-                    else { // It's a single full message object
-                        newMessages = [...c.messages, messageOrChunk];
-                    }
-                    return { ...c, messages: newMessages };
+                    return newConversation;
                 }
                 return c;
             });
