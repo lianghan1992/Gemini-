@@ -11,17 +11,19 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, m
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [isComposing, setIsComposing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (textareaRef.current) {
+    // Only resize if not in the middle of IME composition
+    if (textareaRef.current && !isComposing) {
       textareaRef.current.style.height = 'auto';
       const scrollHeight = textareaRef.current.scrollHeight;
       const maxHeight = 200; // Corresponds to max-h-[200px]
       textareaRef.current.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
     }
-  }, [text]);
+  }, [text, isComposing]);
 
   // Cleanup for image preview URL to prevent memory leaks
   useEffect(() => {
@@ -125,9 +127,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, isLoading, m
             <textarea
                 ref={textareaRef}
                 value={text}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    // Prevent sending message while composing with an IME
+                    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
                         e.preventDefault();
                         handleSend();
                     }

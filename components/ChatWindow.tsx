@@ -20,10 +20,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, isLoading, onSugg
   
   const InitialScreen = () => (
     <div className="flex flex-col items-center justify-center h-full text-text-primary dark:text-dark-text-primary p-4">
-        <h1 className="text-5xl font-bold mb-8 bg-gemini-gradient dark:bg-dark-gemini-gradient bg-clip-text text-transparent text-center">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-8 bg-gemini-gradient dark:bg-dark-gemini-gradient bg-clip-text text-transparent text-center">
             你好，我是 Gemini
         </h1>
-        <h2 className="text-2xl text-text-secondary dark:text-dark-text-secondary mb-12 text-center">我能为您做些什么？</h2>
+        <h2 className="text-xl sm:text-2xl text-text-secondary dark:text-dark-text-secondary mb-12 text-center">我能为您做些什么？</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
             <SuggestionCard 

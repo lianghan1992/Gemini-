@@ -216,42 +216,57 @@ export const fetchChatCompletionStream = async (
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let isFinished = false;
 
-    const processStream = async () => {
-      while (true) {
+    while (!isFinished) {
         const { done, value } = await reader.read();
+        
         if (done) {
-          break;
+            isFinished = true;
+            // The stream is done, but the decoder might have buffered bytes.
+            // A final decode() with no arguments flushes the buffer.
+            buffer += decoder.decode();
+        } else {
+            buffer += decoder.decode(value, { stream: true });
         }
+        
+        // Process all complete lines in the buffer
+        let boundary = buffer.lastIndexOf('\n');
+        if (boundary === -1) {
+            if(isFinished) { // If stream is finished, process the remaining buffer
+                boundary = buffer.length;
+            } else {
+                continue; // Wait for more data if not finished
+            }
+        }
+        
+        const linesStr = buffer.substring(0, boundary);
+        buffer = buffer.substring(boundary + 1);
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        const lines = linesStr.split('\n');
 
         for (const line of lines) {
-          if (line.trim() === '' || !line.startsWith('data:')) {
-            continue;
-          }
-          
-          const jsonStr = line.replace(/^data: /, '').trim();
-          if (jsonStr === '[DONE]') {
-            return;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              onUpdate(content);
+            if (line.trim() === '' || !line.startsWith('data:')) {
+                continue;
             }
-          } catch (e) {
-            console.error('无法解析流中的JSON:', jsonStr, e);
-          }
+            
+            const jsonStr = line.replace(/^data: /, '').trim();
+            if (jsonStr === '[DONE]') {
+                isFinished = true;
+                break; // Exit the for...of loop
+            }
+
+            try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content != null) { // Handles empty string chunks correctly
+                    onUpdate(content);
+                }
+            } catch (e) {
+                console.error('无法解析流中的JSON:', jsonStr, e);
+            }
         }
-      }
-    };
-    
-    await processStream();
+    }
     onFinish();
 
   } catch (error) {
