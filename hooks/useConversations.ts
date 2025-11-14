@@ -68,7 +68,7 @@ export const useConversations = () => {
 
     const addMessageToConversation = useCallback((
         conversationId: string, 
-        messageOrChunk: ChatMessage | string, 
+        messageOrChunk: ChatMessage | ChatMessage[] | string, 
         overwriteLast?: boolean
     ) => {
         setConversations(prev => {
@@ -82,7 +82,10 @@ export const useConversations = () => {
                            const newContent = overwriteLast ? messageOrChunk : (lastMessage.content as string) + messageOrChunk;
                            newMessages[newMessages.length - 1] = { ...lastMessage, content: newContent };
                         }
-                    } else { // It's a full message object
+                    } else if (Array.isArray(messageOrChunk)) { // It's an array of messages
+                        newMessages = [...c.messages, ...messageOrChunk];
+                    }
+                    else { // It's a single full message object
                         newMessages = [...c.messages, messageOrChunk];
                     }
                     return { ...c, messages: newMessages };

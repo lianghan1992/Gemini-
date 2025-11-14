@@ -6,7 +6,6 @@ interface SettingsProps {
   onClose: () => void;
   onSave: (
     apiKey: string,
-    baseUrl: string,
     model: string,
     systemPrompt: string,
     temperature: number,
@@ -14,7 +13,6 @@ interface SettingsProps {
     maxTokens: number
   ) => void;
   initialApiKey: string;
-  initialBaseUrl: string;
   initialModel: string;
   availableModels: string[];
   initialSystemPrompt: string;
@@ -25,11 +23,10 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ 
     isOpen, onClose, onSave, 
-    initialApiKey, initialBaseUrl, initialModel, availableModels,
+    initialApiKey, initialModel, availableModels,
     initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens
 }) => {
   const [apiKey, setApiKey] = useState(initialApiKey);
-  const [baseUrl, setBaseUrl] = useState(initialBaseUrl);
   const [model, setModel] = useState(initialModel);
   const [systemPrompt, setSystemPrompt] = useState(initialSystemPrompt);
   const [temperature, setTemperature] = useState(initialTemperature);
@@ -38,13 +35,12 @@ const Settings: React.FC<SettingsProps> = ({
 
   useEffect(() => {
     setApiKey(initialApiKey);
-    setBaseUrl(initialBaseUrl);
     setModel(initialModel);
     setSystemPrompt(initialSystemPrompt);
     setTemperature(initialTemperature);
     setTopP(initialTopP);
     setMaxTokens(initialMaxTokens);
-  }, [initialApiKey, initialBaseUrl, initialModel, initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens, isOpen]);
+  }, [initialApiKey, initialModel, initialSystemPrompt, initialTemperature, initialTopP, initialMaxTokens, isOpen]);
   
   useEffect(() => {
     if (availableModels.length > 0 && !availableModels.includes(model)) {
@@ -56,7 +52,7 @@ const Settings: React.FC<SettingsProps> = ({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    onSave(apiKey, baseUrl, model, systemPrompt, temperature, topP, maxTokens);
+    onSave(apiKey, model, systemPrompt, temperature, topP, maxTokens);
     onClose();
   };
 
@@ -80,19 +76,6 @@ const Settings: React.FC<SettingsProps> = ({
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="请在此处输入您的 API 密钥"
-              className={commonInputClasses}
-            />
-          </div>
-          <div>
-            <label htmlFor="baseUrl" className="block text-sm font-medium text-text-secondary dark:text-dark-text-secondary">
-              API Base URL
-            </label>
-            <input
-              type="text"
-              id="baseUrl"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="https://your-openai-compatible-endpoint.com"
               className={commonInputClasses}
             />
           </div>

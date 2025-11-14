@@ -23,7 +23,7 @@ const App: React.FC = () => {
   } = useConversations();
   
   const [apiKey, setApiKey] = useState<string>('');
-  const [baseUrl, setBaseUrl] = useState<string>('');
+  const [baseUrl] = useState<string>('/api'); // 硬编码以匹配反向代理
   const [model, setModel] = useState<string>('gemini-2.5-flash');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -55,12 +55,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem('gemini_api_key');
-    const storedBaseUrl = localStorage.getItem('gemini_base_url');
-    if (storedApiKey && storedBaseUrl) {
+    if (storedApiKey) {
       setApiKey(storedApiKey);
-      setBaseUrl(storedBaseUrl);
       if (availableModels.length === 0) {
-          updateModels(storedApiKey, storedBaseUrl);
+          updateModels(storedApiKey, baseUrl);
       }
     } else {
       setIsSettingsOpen(true);
@@ -79,14 +77,13 @@ const App: React.FC = () => {
     const storedMaxTokens = localStorage.getItem('gemini_max_tokens');
     if (storedMaxTokens) setMaxTokens(parseInt(storedMaxTokens, 10));
 
-  }, [updateModels, availableModels.length]);
+  }, [updateModels, availableModels.length, baseUrl]);
 
   const handleSaveSettings = (
-      newApiKey: string, newBaseUrl: string, newModel: string, newSystemPrompt: string,
+      newApiKey: string, newModel: string, newSystemPrompt: string,
       newTemperature: number, newTopP: number, newMaxTokens: number
     ) => {
     setApiKey(newApiKey);
-    setBaseUrl(newBaseUrl);
     setModel(newModel);
     setSystemPrompt(newSystemPrompt);
     setTemperature(newTemperature);
@@ -94,26 +91,25 @@ const App: React.FC = () => {
     setMaxTokens(newMaxTokens);
 
     localStorage.setItem('gemini_api_key', newApiKey);
-    localStorage.setItem('gemini_base_url', newBaseUrl);
     localStorage.setItem('gemini_model', newModel);
     localStorage.setItem('gemini_system_prompt', newSystemPrompt);
     localStorage.setItem('gemini_temperature', newTemperature.toString());
     localStorage.setItem('gemini_top_p', newTopP.toString());
     localStorage.setItem('gemini_max_tokens', newMaxTokens.toString());
     
-    updateModels(newApiKey, newBaseUrl);
+    updateModels(newApiKey, baseUrl);
   };
 
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
-    if (!apiKey || !baseUrl) {
+    if (!apiKey) {
       setIsSettingsOpen(true);
       return;
     }
 
     let currentConversationId = activeConversation?.id;
+    const isNewConversation = !currentConversationId;
 
-    // Create a new conversation if there is no active one
-    if (!currentConversationId) {
+    if (isNewConversation) {
         currentConversationId = createNewConversation();
     }
     
@@ -129,7 +125,7 @@ const App: React.FC = () => {
                 id: Date.now().toString(), role: 'assistant',
                 content: '图片处理失败，请重试。', timestamp: Date.now(),
             };
-            addMessageToConversation(currentConversationId, errorMsg);
+            addMessageToConversation(currentConversationId!, errorMsg);
             return;
         }
     }
@@ -137,18 +133,17 @@ const App: React.FC = () => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(), role: 'user', content, timestamp: Date.now(),
     };
-
-    const messagesForApi = [...(conversations.find(c => c.id === currentConversationId)?.messages || []), userMessage];
-    const isNewChat = messagesForApi.length === 1;
-
-    addMessageToConversation(currentConversationId, userMessage);
-    setIsLoading(true);
-
+    
+    const messagesForApi = [...(activeConversation?.messages || []), userMessage];
+    
     const assistantId = (Date.now() + 1).toString();
     const assistantMessage: ChatMessage = {
         id: assistantId, role: 'assistant', content: '', timestamp: Date.now(),
     };
-    addMessageToConversation(currentConversationId, assistantMessage);
+    
+    // 一次性添加用户和助手占位消息，以避免状态抖动
+    addMessageToConversation(currentConversationId!, [userMessage, assistantMessage]);
+    setIsLoading(true);
 
     fetchChatCompletionStream(
         messagesForApi, apiKey, baseUrl, model,
@@ -158,7 +153,7 @@ const App: React.FC = () => {
         },
         () => {
             setIsLoading(false);
-            if (isNewChat) {
+            if (isNewConversation) {
                 generateTitle(userMessage.content, apiKey, baseUrl, model).then(title => {
                     updateConversationTitle(currentConversationId!, title);
                 });
@@ -170,7 +165,7 @@ const App: React.FC = () => {
             setIsLoading(false);
         }
     );
-  }, [apiKey, baseUrl, model, conversations, activeConversation?.id, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
+  }, [apiKey, baseUrl, model, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -230,7 +225,6 @@ const App: React.FC = () => {
             onClose={() => setIsSettingsOpen(false)}
             onSave={handleSaveSettings}
             initialApiKey={apiKey}
-            initialBaseUrl={baseUrl}
             initialModel={model}
             availableModels={availableModels}
             initialSystemPrompt={systemPrompt}
