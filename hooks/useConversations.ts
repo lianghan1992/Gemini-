@@ -5,6 +5,7 @@ export const useConversations = () => {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
+    // 从 localStorage 加载初始状态
     useEffect(() => {
         try {
             const savedConversations = localStorage.getItem('gemini_conversations');
@@ -15,28 +16,32 @@ export const useConversations = () => {
                 if (lastActiveId && parsed.some(c => c.id === lastActiveId)) {
                     setActiveConversationId(lastActiveId);
                 } else if (parsed.length > 0) {
+                    // 默认激活最新的对话
                     setActiveConversationId(parsed[0].id);
                 }
             }
         } catch (error) {
-            console.error("Failed to load conversations from local storage", error);
+            console.error("从本地存储加载对话失败", error);
         }
     }, []);
 
-    const saveConversations = useCallback((updatedConversations: Conversation[]) => {
-        try {
-            setConversations(updatedConversations);
-            localStorage.setItem('gemini_conversations', JSON.stringify(updatedConversations));
-        } catch (error) {
-            console.error("Failed to save conversations to local storage", error);
+    // 将对话状态异步持久化到 localStorage
+    useEffect(() => {
+        // 避免在初始加载时用空数组覆盖已有数据
+        if (conversations.length > 0) {
+            localStorage.setItem('gemini_conversations', JSON.stringify(conversations));
         }
-    }, []);
+    }, [conversations]);
     
+    // 跟踪活动的对话 ID
     useEffect(() => {
         if(activeConversationId) {
             localStorage.setItem('gemini_active_conversation_id', activeConversationId);
+        } else if (conversations.length === 0) {
+            // 如果所有对话都被删除了，也移除 active id
+            localStorage.removeItem('gemini_active_conversation_id');
         }
-    }, [activeConversationId]);
+    }, [activeConversationId, conversations.length]);
 
     const createNewConversation = useCallback(() => {
         const newConversation: Conversation = {
@@ -45,26 +50,25 @@ export const useConversations = () => {
             messages: [],
             createdAt: Date.now(),
         };
-        const updatedConversations = [newConversation, ...conversations];
-        saveConversations(updatedConversations);
+        // 确保新对话显示在最前面
+        setConversations(prev => [newConversation, ...prev]);
         setActiveConversationId(newConversation.id);
         return newConversation.id;
-    }, [conversations, saveConversations]);
+    }, []);
     
     const deleteConversation = useCallback((id: string) => {
         const updatedConversations = conversations.filter(c => c.id !== id);
-        saveConversations(updatedConversations);
+        setConversations(updatedConversations);
         if (activeConversationId === id) {
             setActiveConversationId(updatedConversations.length > 0 ? updatedConversations[0].id : null);
         }
-    }, [conversations, activeConversationId, saveConversations]);
+    }, [conversations, activeConversationId]);
     
     const updateConversationTitle = useCallback((id: string, title: string) => {
-        const updatedConversations = conversations.map(c => 
+        setConversations(prev => prev.map(c => 
             c.id === id ? { ...c, title } : c
-        );
-        saveConversations(updatedConversations);
-    }, [conversations, saveConversations]);
+        ));
+    }, []);
 
     const addMessageToConversation = useCallback((
         conversationId: string, 
@@ -72,7 +76,7 @@ export const useConversations = () => {
         overwriteLast?: boolean
     ) => {
         setConversations(prev => {
-            const updatedConversations = prev.map(c => {
+            return prev.map(c => {
                 if (c.id === conversationId) {
                     let newMessages: ChatMessage[];
                     if (typeof messageOrChunk === 'string') { // It's a chunk for streaming or error message
@@ -92,9 +96,6 @@ export const useConversations = () => {
                 }
                 return c;
             });
-
-            localStorage.setItem('gemini_conversations', JSON.stringify(updatedConversations));
-            return updatedConversations;
         });
     }, []);
 

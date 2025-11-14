@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-// FIX: Import `Conversation` type to resolve missing type error.
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatMessage, MessageContentPart, Conversation } from './types';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
@@ -37,6 +36,12 @@ const App: React.FC = () => {
   const [temperature, setTemperature] = useState<number>(0.7);
   const [topP, setTopP] = useState<number>(1.0);
   const [maxTokens, setMaxTokens] = useState<number>(0);
+
+  // Ref to get the latest conversations state in async callbacks
+  const conversationsRef = useRef(conversations);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
   const updateModels = useCallback(async (key: string, url: string) => {
     if (!key || !url) return;
@@ -116,14 +121,14 @@ const App: React.FC = () => {
 
     const isNewConversation = !activeConversation?.id;
     let currentConversationId = activeConversation?.id;
-
+    
+    // Create a new conversation if needed
     if (isNewConversation) {
         currentConversationId = createNewConversation();
-        const userMessageText = text || (file ? "图像消息" : "");
-        if (userMessageText) {
-            const tempTitle = userMessageText.substring(0, 20) + (userMessageText.length > 20 ? '...' : '');
-            updateConversationTitle(currentConversationId, tempTitle);
-        }
+        // Set a temporary title immediately
+        const userMessageText = text || (file ? "图像消息" : "新对话");
+        const tempTitle = userMessageText.substring(0, 20) + (userMessageText.length > 20 ? '...' : '');
+        updateConversationTitle(currentConversationId, tempTitle);
     }
     
     let content: string | MessageContentPart[] = text;
@@ -163,48 +168,42 @@ const App: React.FC = () => {
         (chunk) => {
             addMessageToConversation(currentConversationId!, chunk);
         },
-        () => {
+        () => { // onFinish
             setIsLoading(false);
             if (isNewConversation && zhipuApiKey) {
-                // The conversation state will be updated, find the latest version
-                const finalConversation = conversations.find(c => c.id === currentConversationId!);
-                const finalMessages = [...(finalConversation?.messages || []), userMessage];
-                // The final assistant message is not in `finalConversation.messages` yet due to streaming
-                // so we pass the userMessage to ensure the API has context.
-                // A better approach is to get the final state from the hook. For now, this is a good approximation.
-                
-                // Let's get the most up-to-date conversation from local storage to be safe
-                const latestConvos: Conversation[] = JSON.parse(localStorage.getItem('gemini_conversations') || '[]');
-                const updatedConv = latestConvos.find(c => c.id === currentConversationId!);
+                // Use the ref to get the most up-to-date conversation state
+                const latestConversations = conversationsRef.current;
+                const finalConversation = latestConversations.find(c => c.id === currentConversationId!);
 
-                if (updatedConv && updatedConv.messages.length > 0) {
-                    generateTitleWithZhipu(updatedConv.messages, zhipuApiKey)
+                // Title generation should be based on the first user message and the first assistant response.
+                if (finalConversation && finalConversation.messages.length >= 2) {
+                    const firstTurnMessages = finalConversation.messages.slice(0, 2);
+                    generateTitleWithZhipu(firstTurnMessages, zhipuApiKey)
                     .then(title => {
                         if (title && title !== '新对话') {
                             updateConversationTitle(currentConversationId!, title);
                         }
                     })
                     .catch(err => {
-                        console.error("Zhipu title generation failed, keeping temporary title.", err);
+                        console.error("智谱AI标题生成失败，保留临时标题。", err);
                     });
                 }
             }
         },
-        (error) => {
+        (error) => { // onError
             const errorContent = `出现错误: ${error.message}`;
             addMessageToConversation(currentConversationId!, errorContent, true);
             setIsLoading(false);
         }
     );
-  }, [apiKey, baseUrl, model, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens, zhipuApiKey, conversations]);
+  }, [apiKey, baseUrl, model, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens, zhipuApiKey]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
   };
   
   const handleNewChat = () => {
-    const newId = createNewConversation();
-    setActiveConversationId(newId);
+    createNewConversation();
     setIsSidebarOpen(false);
   }
 
