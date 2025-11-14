@@ -131,7 +131,7 @@ export const generateTitleWithZhipu = async (
     const prompt = `为以下对话生成一个简短、简洁的标题（不超过5个词，直接返回标题，不要任何多余的文字）:\n\n用户: "${userContent.substring(0, 100)}..."\n\n助手: "${assistantContent.substring(0, 150)}..."\n\n标题:`;
 
     const payload = {
-        model: 'glm-3-turbo',
+        model: 'glm-4-flash-250414',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 20,
         temperature: 0.1,
