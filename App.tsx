@@ -23,6 +23,7 @@ const App: React.FC = () => {
   } = useConversations();
   
   const [apiKey, setApiKey] = useState<string>('');
+  const [baseUrl, setBaseUrl] = useState<string>('');
   const [model, setModel] = useState<string>('gemini-2.5-flash');
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,11 +35,10 @@ const App: React.FC = () => {
   const [temperature, setTemperature] = useState<number>(0.7);
   const [topP, setTopP] = useState<number>(1.0);
   const [maxTokens, setMaxTokens] = useState<number>(0);
-  
-  const baseUrl = '/api';
 
-  const updateModels = useCallback(async (key: string) => {
-    const models = await fetchModels(key, baseUrl);
+  const updateModels = useCallback(async (key: string, url: string) => {
+    if (!key || !url) return;
+    const models = await fetchModels(key, url);
     if (models.length > 0) {
       setAvailableModels(models);
       const storedModel = localStorage.getItem('gemini_model');
@@ -55,10 +55,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem('gemini_api_key');
-    if (storedApiKey) {
+    const storedBaseUrl = localStorage.getItem('gemini_base_url');
+    if (storedApiKey && storedBaseUrl) {
       setApiKey(storedApiKey);
+      setBaseUrl(storedBaseUrl);
       if (availableModels.length === 0) {
-          updateModels(storedApiKey);
+          updateModels(storedApiKey, storedBaseUrl);
       }
     } else {
       setIsSettingsOpen(true);
@@ -80,10 +82,11 @@ const App: React.FC = () => {
   }, [updateModels, availableModels.length]);
 
   const handleSaveSettings = (
-      newApiKey: string, newModel: string, newSystemPrompt: string,
+      newApiKey: string, newBaseUrl: string, newModel: string, newSystemPrompt: string,
       newTemperature: number, newTopP: number, newMaxTokens: number
     ) => {
     setApiKey(newApiKey);
+    setBaseUrl(newBaseUrl);
     setModel(newModel);
     setSystemPrompt(newSystemPrompt);
     setTemperature(newTemperature);
@@ -91,17 +94,18 @@ const App: React.FC = () => {
     setMaxTokens(newMaxTokens);
 
     localStorage.setItem('gemini_api_key', newApiKey);
+    localStorage.setItem('gemini_base_url', newBaseUrl);
     localStorage.setItem('gemini_model', newModel);
     localStorage.setItem('gemini_system_prompt', newSystemPrompt);
     localStorage.setItem('gemini_temperature', newTemperature.toString());
     localStorage.setItem('gemini_top_p', newTopP.toString());
     localStorage.setItem('gemini_max_tokens', newMaxTokens.toString());
     
-    updateModels(newApiKey);
+    updateModels(newApiKey, newBaseUrl);
   };
 
   const handleSendMessage = useCallback(async (text: string, file?: File) => {
-    if (!apiKey) {
+    if (!apiKey || !baseUrl) {
       setIsSettingsOpen(true);
       return;
     }
@@ -133,39 +137,40 @@ const App: React.FC = () => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(), role: 'user', content, timestamp: Date.now(),
     };
+
+    const messagesForApi = [...(conversations.find(c => c.id === currentConversationId)?.messages || []), userMessage];
+    const isNewChat = messagesForApi.length === 1;
+
     addMessageToConversation(currentConversationId, userMessage);
-
-    const isNewChat = activeConversation?.messages.length === 1;
-
     setIsLoading(true);
 
     const assistantId = (Date.now() + 1).toString();
     const assistantMessage: ChatMessage = {
         id: assistantId, role: 'assistant', content: '', timestamp: Date.now(),
     };
-    addMessageToConversation(currentConversationId, assistantMessage, (updatedMessages) => {
-        fetchChatCompletionStream(
-            updatedMessages, apiKey, baseUrl, model,
-            systemPrompt, temperature, topP, maxTokens,
-            (chunk) => {
-                addMessageToConversation(currentConversationId!, assistantId, chunk);
-            },
-            () => {
-                setIsLoading(false);
-                if (isNewChat) {
-                    generateTitle(userMessage.content, apiKey, baseUrl, model).then(title => {
-                        updateConversationTitle(currentConversationId!, title);
-                    });
-                }
-            },
-            (error) => {
-                const errorContent = `出现错误: ${error.message}`;
-                addMessageToConversation(currentConversationId!, assistantId, errorContent, true);
-                setIsLoading(false);
+    addMessageToConversation(currentConversationId, assistantMessage);
+
+    fetchChatCompletionStream(
+        messagesForApi, apiKey, baseUrl, model,
+        systemPrompt, temperature, topP, maxTokens,
+        (chunk) => {
+            addMessageToConversation(currentConversationId!, chunk);
+        },
+        () => {
+            setIsLoading(false);
+            if (isNewChat) {
+                generateTitle(userMessage.content, apiKey, baseUrl, model).then(title => {
+                    updateConversationTitle(currentConversationId!, title);
+                });
             }
-        );
-    });
-  }, [apiKey, model, availableModels, activeConversation, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
+        },
+        (error) => {
+            const errorContent = `出现错误: ${error.message}`;
+            addMessageToConversation(currentConversationId!, errorContent, true);
+            setIsLoading(false);
+        }
+    );
+  }, [apiKey, baseUrl, model, conversations, activeConversation?.id, createNewConversation, addMessageToConversation, updateConversationTitle, systemPrompt, temperature, topP, maxTokens]);
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
@@ -225,6 +230,7 @@ const App: React.FC = () => {
             onClose={() => setIsSettingsOpen(false)}
             onSave={handleSaveSettings}
             initialApiKey={apiKey}
+            initialBaseUrl={baseUrl}
             initialModel={model}
             availableModels={availableModels}
             initialSystemPrompt={systemPrompt}

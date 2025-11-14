@@ -69,15 +69,13 @@ export const useConversations = () => {
     const addMessageToConversation = useCallback((
         conversationId: string, 
         messageOrChunk: ChatMessage | string, 
-        onComplete?: (updatedMessages: ChatMessage[]) => void,
         overwriteLast?: boolean
     ) => {
         setConversations(prev => {
-            let messageAdded = false;
             const updatedConversations = prev.map(c => {
                 if (c.id === conversationId) {
                     let newMessages: ChatMessage[];
-                    if (typeof messageOrChunk === 'string') { // It's a chunk for streaming
+                    if (typeof messageOrChunk === 'string') { // It's a chunk for streaming or error message
                         newMessages = [...c.messages];
                         const lastMessage = newMessages[newMessages.length - 1];
                         if (lastMessage && lastMessage.role === 'assistant') {
@@ -87,16 +85,11 @@ export const useConversations = () => {
                     } else { // It's a full message object
                         newMessages = [...c.messages, messageOrChunk];
                     }
-                    if (onComplete && !messageAdded) {
-                        onComplete(newMessages);
-                        messageAdded = true;
-                    }
                     return { ...c, messages: newMessages };
                 }
                 return c;
             });
 
-            // Debounced save
             localStorage.setItem('gemini_conversations', JSON.stringify(updatedConversations));
             return updatedConversations;
         });
